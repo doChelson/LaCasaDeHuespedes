@@ -1,0 +1,777 @@
+╔══════════════════════════════════════════════════════════════════╗
+║          NICANOR MOLINARE — LA CASA DE HUÉSPEDES               ║
+║              GUÍA COMPLETA DEL CREADOR                         ║
+║                    por doChelson                                ║
+╚══════════════════════════════════════════════════════════════════╝
+
+DOCUMENTO CONFIDENCIAL — Solo para el creador del juego.
+Contiene TODOS los secretos, decisiones, rutas, finales y mecánicas.
+
+═══════════════════════════════════════════════════════════════════
+  ÍNDICE
+═══════════════════════════════════════════════════════════════════
+
+  1. Historia y Lore
+  2. Mapa Completo (27 habitaciones)
+  3. Personajes (5 NPCs)
+  4. Sistema de Horror (0-20)
+  5. Sistema de Actos (1-4)
+  6. Sistema de Decisiones (9 decisiones)
+  7. Sistema de Karma y Confianza
+  8. Los 6 Finales
+  9. Los 25 Easter Eggs
+  10. Código del Sótano
+  11. Puzzles y Secretos Ocultos
+  12. Objetos del Inventario
+  13. Eventos Especiales
+  14. Comandos Secretos
+  15. Flujo Óptimo para cada Final
+
+═══════════════════════════════════════════════════════════════════
+  1. HISTORIA Y LORE
+═══════════════════════════════════════════════════════════════════
+
+RESUMEN:
+  Nicanor Molinare fue un hombre solitario que construyó una casa de
+  huéspedes en 1826 en el Valle Quieto (también llamado Valle de los
+  Callados / Valle Sin Retorno). La construyó porque tenía miedo de
+  morir solo.
+
+  Con el tiempo, su soledad se convirtió en locura, y la locura fue
+  absorbida por la casa. Nicanor murió dentro de ella, pero su
+  consciencia se fusionó con la estructura. La casa SE CONVIRTIÓ en
+  Nicanor: cada pared es su carne, cada puerta es su boca.
+
+  Carmen era el amor de Nicanor. La casa la preservó eternamente
+  como cuidadora. Ella mantiene la casa funcionando, atrayendo
+  nuevos huéspedes para alimentar la entidad.
+
+  Los huéspedes que llegan nunca se van. Se convierten en "ecos":
+  versiones fantasmales de sí mismos que la casa usa para parecer
+  habitada y atraer más víctimas.
+
+CRONOLOGÍA:
+  1742 — Fundación del pueblo Valle Quieto (minería)
+  1826 — Nicanor Molinare construye la casa
+  18XX — Nicanor muere y se fusiona con la casa
+  1947 — Último censo del pueblo: población CERO
+         Carmen deja de envejecer este año
+  1983 — Llega Martín Blackwood (el escritor)
+  1991 — Llega Elena Voss
+  2001 — Llega Ricardo Hale
+  2015 — Llega Isabel Crane
+  HOY  — Llega el JUGADOR
+
+  Los 5 NPCs actuales (Martín, Lucía, Ramón, Sofía, Carmen) son:
+  - Martín: eco de un escritor, transcribe la historia de la casa
+  - Lucía: eco desvaneciéndose, casi transparente
+  - Ramón: eco obsesionado con contar el tiempo
+  - Sofía: NO es realmente una niña. Tiene 300+ años, fue uno de
+    los primeros huéspedes. La casa la mantiene con forma de niña.
+  - Carmen: el amor de Nicanor, preservada como cuidadora eterna
+
+═══════════════════════════════════════════════════════════════════
+  2. MAPA COMPLETO (27 habitaciones, 5 pisos)
+═══════════════════════════════════════════════════════════════════
+
+EXTERIOR (ext) — 5 habitaciones:
+  ┌─────────────────┐
+  │ Camino Regreso   │ ← Circular, siempre vuelve a la casa
+  │ Calle Pueblo     │
+  │ Plaza Pueblo     │ ← Fuente seca, edificios vacíos
+  │ Camino al Pueblo │ ← Cartel "Valle Quieto 2km"
+  │ Jardín Frontal   │ ← Flores, puerta hierro, lápida (horror>=13)
+  └─────────────────┘
+
+PLANTA BAJA (pb) — 6 habitaciones:
+  ┌──────────┬────────────┬──────────┬────────┐
+  │Sala Estar│            │ Lavadero │        │
+  │          │            │(trampilla│        │
+  │          │            │ sótano)  │        │
+  ├──────────┤            ├──────────┤        │
+  │          │            │Pasillo   │        │
+  │          │            │Servicio  │        │
+  ├──────────┼────────────┼──────────┼────────┤
+  │Baño Visit│ Recepción  │ Comedor  │ Cocina │
+  │          │ (INICIO)   │          │        │
+  └──────────┴────────────┴──────────┴────────┘
+
+PRIMER PISO (p1) — 8 habitaciones:
+  ┌──────────┬────────────┬──────────┐
+  │Hab Sofía │Tu Habitac. │Hab Ramón │
+  ├──────────┼────────────┼──────────┤
+  │          │Pasillo 1P  │          │
+  ├──────────┼────────────┼──────────┤
+  │Hab Lucía │Baño 1P     │Hab Martín│
+  └──────────┴────────────┴──────────┘
+
+SEGUNDO PISO (p2) — 4 habitaciones:
+  ┌───────────┬────────────┬──────────┐
+  │Cuarto Serv│Escalera 2P │Hab Carmen│ ← CERRADA con llave
+  ├───────────┼────────────┼──────────┘
+  │           │   Ático    │ ← CERRADO con llave (llave en libro hueco)
+  └───────────┴────────────┘
+
+SÓTANO (sot) — 4 habitaciones:
+  ┌────────────────┐
+  │Escalera Sótano │ ← Requiere código 1947
+  │    Bodega      │
+  │  Cuarto Frío   │
+  │  Sala Oculta   │ ← FINAL DEL JUEGO: el Libro
+  └────────────────┘
+
+CONEXIONES ESPECIALES:
+  - Recepción → Jardín → Camino → Plaza → Calle → Camino Regreso
+    (el Camino Regreso SIEMPRE te devuelve a la Recepción)
+  - Lavadero → Sótano (requiere código 1947 en trampilla)
+  - Escalera 2P → Ático (requiere llave del libro hueco)
+  - Hab Carmen está cerrada inicialmente
+
+═══════════════════════════════════════════════════════════════════
+  3. PERSONAJES (5 NPCs)
+═══════════════════════════════════════════════════════════════════
+
+CARMEN (La Cuidadora)
+  Ubicación: Cocina / aparece en varias habitaciones
+  Verdad: Amor de Nicanor, preservada 200 años. No envejece desde 1947.
+  Rol: Mantiene la casa, atrae huéspedes, sirve el estofado eterno.
+  Horror bajo: Maternal, amable, ofrece té y estofado.
+  Horror alto: Se revela su naturaleza. Ojos que se vuelven negros.
+  Fotografías: En su habitación hay fotos desde 1826 donde aparece IGUAL.
+  Frase clave: "Come, come. Tienes que recuperar fuerzas."
+
+MARTÍN BLACKWOOD (El Escritor)
+  Ubicación: Habitación de Martín (1er piso)
+  Llegó: 14 de octubre de 1983
+  Verdad: Es "la voz" de Nicanor. Transcribe la historia de la casa.
+  Objeto: Máquina de escribir Olivetti Lettera 32 que escribe sola.
+  Horror bajo: Escritor amable y distraído.
+  Horror medio: La máquina describe lo que el jugador ACABA de hacer.
+  Horror alto: Sus dedos se funden con las teclas. Él y la máquina son uno.
+  Frase clave: "No soy yo quien escribe. Es la casa. Yo solo soy los dedos."
+
+LUCÍA (El Eco)
+  Ubicación: Habitación de Lucía (1er piso)
+  Verdad: Es "la memoria" de Nicanor, desvaneciéndose.
+  Objeto: Maleta que nunca se abrió (vacía por dentro).
+  Horror bajo: Mujer pálida, etérea, sin objetos personales.
+  Horror medio: Semi-transparente. Puedes ver a través de ella.
+  Horror alto: Flota sobre el suelo, voz con eco doble.
+  Frase clave: "Somos ecos. Todos nosotros."
+
+RAMÓN (El Contador)
+  Ubicación: Habitación de Ramón (1er piso)
+  Verdad: Es "la obsesión con el tiempo" de Nicanor.
+  Objeto: Marcas en TODAS las paredes (miles de líneas).
+  Horror bajo: Anciano tembloroso que no deja de contar.
+  Horror medio: Los números cubren todo. Tiene momentos de lucidez.
+  Horror alto: Su cuerpo está cubierto de líneas, él ES las marcas.
+  Datos clave: Conoce el código 1947. Tiene grupos de 7 marcas
+    con círculo (7 huéspedes, 7 habitaciones, 7 formas de morir).
+  Frase clave: "Si dejas de contar, el tiempo te atrapa."
+
+SOFÍA (La Niña Eterna)
+  Ubicación: Habitación de Sofía (1er piso)
+  Verdad: NO es una niña. Tiene 300+ años. Es "la infancia" de Nicanor.
+  Objetos: Dibujos con crayones, juguetes antiguos de los años 40.
+  Horror bajo: Niña dulce que dibuja flores y soles.
+  Horror medio: Los dibujos se vuelven oscuros. Habla con "amigo imaginario".
+  Horror alto: Tiene demasiados dientes. Sus dibujos son profecías.
+  Amigo Imaginario: Es Nicanor hablando desde debajo del suelo.
+  Frase clave: "Esta casa come. No comida. Come personas."
+
+═══════════════════════════════════════════════════════════════════
+  4. SISTEMA DE HORROR (0-20)
+═══════════════════════════════════════════════════════════════════
+
+El horror sube con las acciones del jugador. NUNCA baja.
+Afecta: descripciones, diálogos NPC, efectos visuales, sonido.
+
+NIVELES:
+  0-3  → "Tranquilo"  (verde)  — Todo parece normal
+  4-6  → "Inquieto"   (amarillo) — Detalles sutiles cambian
+  7-9  → "Perturbado" (naranja)  — Cosas claramente mal
+  10-13 → "Perturbado" (naranja) — Horror activo, shake de pantalla
+  14-17 → "Al borde"  (rojo)    — Realidad distorsionada
+  18-20 → "..."       (rojo parpadeante) — Ya no distingue lo real
+
+HITOS AUTOMÁTICOS:
+  Horror 5  → Mensaje: "Sientes un escalofrío..."
+  Horror 7  → ACTO 2 — LAS GRIETAS
+  Horror 10 → Shake de pantalla. Se muestra contador de turnos.
+  Horror 12 → Se "crea" un archivo externo (easter egg meta)
+  Horror 14 → ACTO 3 — LO QUE HAY DEBAJO. Pulse, scanlines.
+  Horror 15 → Aparece nota arrugada en inventario
+  Horror 18 → Mensaje: "Ya no distingues lo real..."
+  Horror 15+ → ACTO 4 — EL DESCENSO
+
+EFECTOS VISUALES POR NIVEL:
+  >= 7:  Fondo más oscuro, sidebar más oscuro
+  >= 10: Shake de pantalla al subir horror
+  >= 14: Pulse-horror, scanlines, vignette intensa
+  >= 17: Fondo casi negro
+
+COSAS QUE SUBEN HORROR:
+  +1: Comer estofado (3ra vez), mirar ventana (horror>=14),
+      rezar (horror>=14), beber frasco, dormir (horror>=14),
+      camino regreso, varios easter eggs
+  +2: Comer estofado (4ta+), hablar amigo imaginario,
+      ver lápida, confrontar Carmen, rechazar brindis
+  +3: Encontrar diario completo, abrir sótano, confrontar Carmen
+  +4: Reunir las 3 páginas del diario
+  +5: Entrar a sala oculta por primera vez
+
+
+═══════════════════════════════════════════════════════════════════
+  5. SISTEMA DE ACTOS (1-4)
+═══════════════════════════════════════════════════════════════════
+
+ACTO 1 — (Sin nombre, inicio)
+  Horror 0-6. La casa parece normal. Exploración tranquila.
+
+ACTO 2 — LAS GRIETAS (Horror >= 7)
+  Las cosas empiezan a fallar. NPCs revelan más.
+
+ACTO 3 — LO QUE HAY DEBAJO (Horror >= 14)
+  El horror es evidente. Realidad distorsionada.
+
+ACTO 4 — EL DESCENSO (Horror >= 15)
+  Acceso al sótano, camino al final.
+
+═══════════════════════════════════════════════════════════════════
+  6. SISTEMA DE DECISIONES (9 decisiones clave)
+═══════════════════════════════════════════════════════════════════
+
+Las decisiones aparecen como paneles visuales con 2-3 opciones.
+Cada opción afecta: karma, confianza con NPCs, y rutas disponibles.
+
+DECISIÓN 1: LA PRIMERA NOCHE
+  Cuándo: Al entrar a Tu Habitación por primera vez (turnos > 3)
+  Carmen te ofrece un té de hierbas.
+
+  A) Beber el té
+     → Carmen +2 confianza
+     → Horror +1
+     → Obtienes "Recuerdo del sueño" (pista sobre el libro)
+     → Flag: bebioTe, suenoProfetico
+
+  B) Rechazar amablemente
+     → Carmen -1 confianza, Karma +1
+     → Encuentras nota bajo almohada: "NO BEBAS NADA QUE ELLA TE DÉ"
+     → Obtienes "Nota bajo la almohada"
+     → Flag: rechazaTe
+
+  C) Fingir beber y derramar
+     → Carmen 0 confianza
+     → Horror +1
+     → El té disuelve la alfombra, revela el número "9" (2do dígito)
+     → Flag: fingioBeber, digito2
+
+────────────────────────────────────────────
+
+DECISIÓN 2: EL MANUSCRITO (Martín)
+  Cuándo: Hablar con Martín, horror < 7, primera vez
+
+  A) Leer el manuscrito
+     → Martín +2 confianza, Karma +1
+     → Horror +2
+     → Descubres que el manuscrito describe TU vida
+     → Flag: leyoManuscrito
+
+  B) Ofrecer ayuda para escribir
+     → Martín +3 confianza, Karma +2
+     → Martín se convierte en ALIADO
+     → Revela que el libro del sótano es "el original"
+     → Flag: ayudoMartin, martinAliado
+
+  C) Declinar
+     → Martín -1 confianza, Karma -1
+     → La máquina escribe sola sobre tu rechazo
+
+────────────────────────────────────────────
+
+DECISIÓN 3: LA ADVERTENCIA (Lucía)
+  Cuándo: Hablar con Lucía, horror 7-13, primera vez
+  Lucía quiere escapar contigo.
+
+  A) Intentar escapar juntos
+     → Lucía +3, Carmen -2, Karma +2
+     → FRACASA: el camino los devuelve. Escena emotiva.
+     → Horror +2
+     → Flag: intentoEscapeLucia
+
+  B) Convencerla de quedarse
+     → Lucía +1, Karma 0
+     → Lucía revela que Ramón sabe el código (1-9-algo)
+     → Flag: luciaAyuda
+
+  C) Ir solo, sin ella
+     → Lucía -2, Karma -2
+     → Lucía se vuelve hostil. Horror +1.
+     → Flag: luciaHostil
+
+────────────────────────────────────────────
+
+DECISIÓN 4: LOS NÚMEROS (Ramón)
+  Cuándo: Hablar con Ramón, horror 7-13, primera vez
+  Ramón tiene un momento de lucidez.
+
+  A) Escuchar atentamente
+     → Ramón +2, Karma +1
+     → REVELA TODO: código 1947, las 5 palabras del libro,
+       Y la sexta opción secreta: escribir "PAZ"
+     → Flag: ramonRevelo
+
+  B) Preguntarle por la historia
+     → Ramón +1, Karma +1
+     → Revela la historia de Nicanor + el código 1947
+
+  C) Ignorar sus delirios
+     → Ramón -2, Karma -1
+     → Horror +1. Las marcas forman tu nombre.
+
+────────────────────────────────────────────
+
+DECISIÓN 5: LA PETICIÓN (Sofía)
+  Cuándo: Hablar con Sofía, horror 7-13, primera vez
+  Sofía te muestra dos versiones de un dibujo tuyo.
+
+  A) "El que sonríe. Voy a ayudarlos a todos."
+     → Sofía +3, Karma +3
+     → Sofía confía en ti y revela el secreto de "PAZ"
+     → Flag: sofiaConfio
+
+  B) "No puedo prometer nada, pero lo intentaré"
+     → Sofía +1, Karma +1
+     → Sofía revela que la casa come personas
+
+  C) "No puedo ayudarte"
+     → Sofía -2, Karma -2
+     → Horror +2. Sofía se vuelve hostil.
+     → Flag: sofiaHostil
+
+────────────────────────────────────────────
+
+DECISIÓN 6: LA HABITACIÓN PROHIBIDA (Carmen)
+  Cuándo: Al entrar a la Habitación de Carmen
+  Carmen te descubre.
+
+  A) Confrontarla con las fotos de 1826
+     → Carmen -2, Karma +1
+     → GRAN REVELACIÓN: Carmen confiesa 200 años cuidando la casa.
+       Explica que sin huéspedes la casa muere y todos desaparecen.
+     → Horror +3
+     → Flag: carmenConfeso
+
+  B) Disculparse y salir
+     → Carmen +1, Karma -1
+     → Flag: carmenAmable
+
+  C) Exigir respuestas
+     → Carmen -3, Karma 0
+     → Carmen se vuelve HOSTIL. Ojos negros. Horror +3.
+     → Cierra su habitación con llave permanentemente.
+     → Flag: carmenHostil
+
+────────────────────────────────────────────
+
+DECISIÓN 7: LA ENCRUCIJADA (Sótano)
+  Cuándo: Al entrar a Escalera del Sótano por primera vez
+
+  A) Seguir la voz de Carmen
+     → Carmen +1, Karma -1
+     → Camino directo a la bodega
+     → Flag: siguioCarmen
+
+  B) Seguir el silencio
+     → Carmen -1, Karma +2
+     → Encuentras mensaje de Nicanor grabado en piedra:
+       "MI NOMBRE ES NICANOR. CONSTRUÍ ESTA CASA PORQUE TENÍA
+        MIEDO DE MORIR SOLO. AHORA SOY LA CASA. Y SIGO SOLO."
+     → Horror +2
+     → Flag: oyoNicanor, encontroMensajeNicanor
+
+  C) Volver arriba
+     → Te devuelve al lavadero
+     → Flag: evitaSotano
+
+────────────────────────────────────────────
+
+DECISIÓN 8: LA ÚLTIMA CENA (Evento especial)
+  Cuándo: Horror >= 13, turnos > 50, al menos 3 decisiones tomadas
+  Carmen anuncia una cena de aniversario (200 años).
+
+  A) Asistir a la cena
+     → Escena con todos los NPCs en el comedor
+     → Si tienes confianza alta con NPCs, te advierten
+     → Sub-decisión: EL BRINDIS
+       A1) Brindar → Carmen +2, Horror +2
+       A2) Voltear la copa → Carmen -3, Karma +2, Horror +3
+           (Nadie había rechazado el brindis NUNCA)
+
+  B) No asistir — explorar
+     → Carmen -2
+     → La casa queda vacía. Puedes entrar a la hab. de Carmen.
+     → Encuentras su diario: habla de que eres "diferente"
+     → Horror +1
+     → Flag: evitoCena
+
+────────────────────────────────────────────
+
+DECISIÓN 9: LA VISIÓN DE NICANOR (Sala Oculta)
+  Cuándo: Al entrar a la Sala Oculta por primera vez
+  El fantasma de Nicanor aparece en el espejo.
+
+  A) Escuchar con compasión
+     → Karma +3
+     → Nicanor cuenta su historia de soledad
+     → DESBLOQUEA escribir "PAZ" en el libro
+     → Flag: nicanorConfeso, pazDisponible
+
+  B) Rechazarlo: "Tú creaste este infierno"
+     → Karma -2, Horror +2
+     → El espejo se agrieta
+
+  C) Preguntarle cómo liberar a todos
+     → Karma +2
+     → Revela las 5 palabras + el secreto de PAZ
+     → Flag: nicanorExplico, pazDisponible
+
+═══════════════════════════════════════════════════════════════════
+  7. SISTEMA DE KARMA Y CONFIANZA
+═══════════════════════════════════════════════════════════════════
+
+KARMA (acumulativo):
+  +5 o más  → "Compasivo"   — Desbloquea Final REDENCIÓN
+  +2 a +4   → "Empático"
+   0 a +1   → "Neutral"
+  -1 a -2   → "Pragmático"
+  -3 o menos → "Despiadado"
+
+  Se necesita Karma >= 3 + flag pazDisponible para escribir "PAZ"
+
+CONFIANZA (por NPC, -5 a +5):
+  Martín: Afecta diálogos en horror alto. Si >= 2 y es aliado,
+          te guía hacia el final PAZ.
+  Lucía:  Si >= 3, intenta escapar contigo (fracasa pero es emotivo).
+          Si hostil, desaparece antes.
+  Ramón:  Si >= 2, revela TODO el código de una vez.
+          Te advierte en la cena si confianza alta.
+  Sofía:  Si >= 2, revela el secreto de PAZ.
+          Si hostil, sus dibujos te atacan.
+  Carmen: Alta confianza = ella te facilita cosas pero te manipula.
+          Baja confianza = se vuelve amenazante.
+
+COMANDO "decisiones": El jugador puede escribir "decisiones",
+  "mis decisiones" o "karma" para ver su historial completo.
+
+
+═══════════════════════════════════════════════════════════════════
+  8. LOS 6 FINALES
+═══════════════════════════════════════════════════════════════════
+
+Todos los finales ocurren en la SALA OCULTA, escribiendo en el Libro.
+
+FINAL 1: LIBERTAD (Escribir "LIBERTAD")
+  Requisito: Llegar a la sala oculta
+  Resultado: Escapas de la casa. Sales corriendo al jardín.
+  La puerta se abre. El camino lleva a algún lugar real.
+  Pero nunca olvidas. La casa te marcó para siempre.
+  → El final "bueno" estándar.
+
+FINAL 2: ACEPTACIÓN (Escribir tu propio nombre)
+  Requisito: Llegar a la sala oculta
+  Resultado: Te rindes. Aceptas ser parte de la casa.
+  Tu nombre se extiende como raíces en el papel.
+  Te conviertes en un eco más, un huésped permanente.
+  → El final "malo" — te quedas para siempre.
+
+FINAL 3: OLVIDO (No escribir nada / pasar tiempo)
+  Requisito: Llegar a la sala oculta
+  Resultado: No escribes nada. El silencio te consume.
+  Te olvidas de quién eras. La casa te absorbe lentamente.
+  → Similar a Aceptación pero más melancólico.
+
+FINAL 4: SACRIFICIO (Escribir "SOFÍA" o "ELLA")
+  Requisito: Haber hablado con Sofía en capa 3 (horror>=14)
+           + Flag salvoSofia = true
+  Resultado: Liberas a Sofía. Ella escapa después de 300 años.
+  Tú te quedas en su lugar. Pero la casa te trata diferente:
+  con gratitud, no con hambre. Eres un guardián voluntario.
+  → Final agridulce — te sacrificas por ella.
+
+FINAL 5: LA VERDAD (Escribir "VERDAD")
+  Requisito: 15+ easter eggs descubiertos
+  Resultado: Ves toda la verdad sobre Nicanor y la casa.
+  La historia completa se revela. Sales como testigo,
+  no como prisionero. Llevas la casa en tu memoria.
+  → El final "secreto" original.
+
+FINAL 6: REDENCIÓN (Escribir "PAZ" o "PERDÓN") ★ NUEVO ★
+  Requisitos:
+    - Flag pazDisponible = true (de decisión 9: escuchar a Nicanor)
+    - Karma >= 3 (decisiones compasivas a lo largo del juego)
+  Resultado: Liberas a TODOS. Nicanor encuentra paz.
+  Carmen envejece por fin. Martín termina su novela.
+  Lucía se solidifica. Ramón deja de contar. Sofía es una niña real.
+  La casa se transforma en un lugar real y cálido.
+  Todos salen juntos. Carmen se queda en la puerta, despidiendo.
+  → El MEJOR final. Requiere compasión sostenida durante todo el juego.
+
+TABLA DE REQUISITOS:
+  ┌────────────┬──────────────────────────────────────────────────┐
+  │ Final      │ Requisito                                        │
+  ├────────────┼──────────────────────────────────────────────────┤
+  │ Libertad   │ Escribir "LIBERTAD" en el libro                  │
+  │ Aceptación │ Escribir tu nombre en el libro                   │
+  │ Olvido     │ (implícito, si no escribes nada relevante)       │
+  │ Sacrificio │ Escribir "SOFÍA"/"ELLA" + habloSofiaCapa3        │
+  │ Verdad     │ Escribir "VERDAD" + 15+ easter eggs              │
+  │ Redención  │ Escribir "PAZ"/"PERDÓN" + karma>=3 + pazDisponib │
+  └────────────┴──────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════
+  9. LOS 25 EASTER EGGS
+═══════════════════════════════════════════════════════════════════
+
+Cada easter egg se descubre UNA vez. Se trackean en G.easters{}.
+
+ #  Nombre            Cómo encontrarlo
+ ── ────────────────  ──────────────────────────────────────────
+ 1  quien_soy         Escribir "quien soy" como comando
+ 2  ayuda             Pedir ayuda 4+ veces
+ 3  estofado5         Comer estofado 5 veces
+ 4  rezar             Escribir "rezar" u "orar"
+ 5  gritar            Escribir "gritar" o "grito"
+ 6  nicanor           Escribir "nicanor molinare" o "nicanor"
+ 7  manos             Examinar manos con horror >= 14
+ 8  turnos_cmd        Escribir "turnos" con 300+ turnos
+ 9  archivo           Horror >= 12 (auto) — archivo "meta" externo
+10  nota_inventario   Horror >= 15 (auto) — nota aparece en inventario
+11  falseGameOver     Turno 100 exacto — falso game over
+12  horaReal          Turno múltiplo de 30, horror>=10, hora real 23:00-5:00
+13  nombreLetras      Turnos múltiplos de 50, horror>=12, hasta deletrear nombre
+14  espejoVisitas     Examinar espejo baño visitas 5 veces
+15  espejoBano        Examinar espejo baño 1er piso 5 veces
+16  vioTumba          Examinar lápida en jardín (horror >= 13)
+17  caminoRegreso     Llegar al Camino de Regreso (siempre vuelves)
+18  relojComedor      Examinar reloj del comedor (horror >= 10)
+19  agua              Mirar agua en baño 1er piso (horror >= 9)
+20  amigo             Hablar con amigo imaginario en hab. Sofía
+21  libroRegistro6    Examinar libro registro con horror >= 16
+22  espejoVisitas     Espejo visitas 5ta vez (duplicado con 14)
+23  espejoBano        Espejo baño 5ta vez (duplicado con 15)
+24  (disponible)      Slot libre
+25  (disponible)      Slot libre
+
+NOTA: Algunos easter eggs se activan automáticamente por horror.
+Para el Final VERDAD se necesitan 15 de estos 25.
+
+
+═══════════════════════════════════════════════════════════════════
+  10. CÓDIGO DEL SÓTANO
+═══════════════════════════════════════════════════════════════════
+
+CÓDIGO: 1947
+
+Significado: El año en que Carmen dejó de envejecer.
+             El año del último censo de Valle Quieto (población: 0).
+
+CÓMO DESCUBRIR CADA DÍGITO:
+
+  Dígito 1 (="1"): Debajo de la mesa del comedor hay tallado un "1"
+  Dígito 2 (="9"): Debajo de la alfombra del pasillo 1er piso: "9"
+                    O: Fingir beber el té (decisión 1, opción C)
+  Dígito 3 (="4"): En los frascos de la despensa (cocina, horror>=7)
+                    Los frascos dicen "Esencia - 4"
+  Dígito 4 (="7"): En las marcas de Ramón (horror>=10)
+                    El número 7 aparece obsesivamente
+
+  ATAJO: Hablar con Ramón (decisión 4, opción A o B) te da TODOS
+         los dígitos de una vez: "El código es 1947."
+
+  Otro: El amigo imaginario de Sofía dice "el código es el año
+        en que Carmen dejó de envejecer"
+
+═══════════════════════════════════════════════════════════════════
+  11. PUZZLES Y SECRETOS OCULTOS
+═══════════════════════════════════════════════════════════════════
+
+PUZZLE DE LOS LIBROS (Sala de Estar):
+  Los 5 libros de la estantería deben leerse en ORDEN para abrir
+  un compartimento secreto con la llave del ático:
+    1. "El Último Registro"
+    2. "Puertas Sin Salida"
+    3. "Memorias de la Casa" ← Este es HUECO, contiene la llave
+    4. "El Huésped Eterno"
+    5. "Crónicas de Valle Quieto"
+  Si te equivocas de orden, se reinicia.
+
+LLAVE DEL ÁTICO:
+  Dentro del libro hueco "Memorias de la Casa" (paso 3 del puzzle)
+  Abre la puerta del ático en Escalera 2do Piso.
+
+LAS 3 PÁGINAS DEL DIARIO:
+  Página 1: En "diario personal" de Tu Habitación
+  Página 2: En "diario viejo" del Ático
+  Página 3: Detrás del cuadro en Sala de Estar
+  Reunir las 3 → Horror +4, flag encontroDiario
+
+TRAMPILLA DEL SÓTANO:
+  Ubicación: Lavadero (debajo de la alfombra, visible con horror>=5)
+  Candado de 4 dígitos → 1947
+  Al abrirse: Horror +3, se crea la salida "bajar" en lavadero
+
+HABITACIÓN DE CARMEN:
+  Normalmente cerrada con llave.
+  Se puede acceder:
+    - Si no asistes a La Última Cena (decisión 8B)
+    - Contiene fotos de Carmen desde 1826 (sin envejecer)
+    - Dispara decisión 6 cuando Carmen te descubre
+
+SALA OCULTA:
+  Al final del sótano (Escalera → Bodega → Cuarto Frío → Sala Oculta)
+  Contiene: el Libro de registro original, un espejo negro, velas azules
+  Aquí aparece la visión de Nicanor (decisión 9)
+  Aquí se escriben las palabras para los finales
+
+
+═══════════════════════════════════════════════════════════════════
+  12. OBJETOS DEL INVENTARIO
+═══════════════════════════════════════════════════════════════════
+
+Objetos que se pueden obtener durante el juego:
+
+  nota_arrugada     — Aparece automáticamente en horror >= 15
+                      "Deja de jugar. Esto no es un juego."
+
+  recuerdo_sueno    — Decisión 1A (beber el té)
+                      Pista sobre el libro y la respuesta
+
+  nota_almohada     — Decisión 1B (rechazar el té)
+                      "NO BEBAS NADA QUE ELLA TE DÉ"
+
+  llave_atico       — Puzzle de los libros (Sala de Estar)
+                      Abre el ático
+
+  (páginas diario)  — No se agregan al inventario como items,
+                      se trackean con flags
+
+
+═══════════════════════════════════════════════════════════════════
+  13. EVENTOS ESPECIALES
+═══════════════════════════════════════════════════════════════════
+
+EVENTO: NOTAS ALEATORIAS (cada 15 turnos, horror >= 5)
+  Mensajes random que caen del techo, aparecen en bolsillos, etc.
+
+EVENTO: SUSURROS (cada 20 turnos, horror >= 8)
+  Susurros, sombras, temperaturas que bajan. + sonido "susurro"
+
+EVENTO: FALSO GAME OVER (turno 100 exacto)
+  Pantalla de "GAME OVER" roja → 4 segundos → "es broma"
+  Easter egg automático.
+
+EVENTO: HORA REAL (cada 30 turnos, horror >= 10, 23:00-5:00)
+  Si el jugador juega de madrugada, la casa lo sabe.
+  "Es muy tarde, [nombre]. ¿No deberías estar durmiendo?"
+
+EVENTO: NOMBRE EN LA PARED (cada 50 turnos, horror >= 12)
+  Las letras del nombre del jugador aparecen una por una
+  grabadas en la pared.
+
+EVENTO: LA ÚLTIMA CENA (horror >= 13, turnos > 50, 3+ decisiones)
+  Campana suena. Carmen anuncia cena de aniversario.
+  → Decisión 8 (ver sección de decisiones)
+
+
+═══════════════════════════════════════════════════════════════════
+  14. COMANDOS SECRETOS
+═══════════════════════════════════════════════════════════════════
+
+Comandos que el jugador puede escribir en la caja de texto:
+
+  quien soy       → Respuesta existencial basada en horror
+  ayuda / help    → Ayuda normal (4+ veces = easter egg)
+  secretos        → Muestra progreso (eggs/horror/acto/turnos)
+  decisiones      → Muestra historial de decisiones y karma
+  rezar           → Respuesta basada en horror (easter egg)
+  gritar          → Respuesta basada en horror (easter egg)
+  dormir          → Solo funciona en Tu Habitación
+  escuchar        → Describe sonidos según horror
+  oler            → Describe olores según ubicación
+  pensar          → Reflexión según horror
+  nicanor molinare→ Lore de Nicanor según horror
+  mis manos       → Descripción manos según horror (EE en horror>=14)
+  ventana         → Mirar afuera (solo en habitaciones con ventana)
+  sentarse        → Sentarse (efectos en sala estar y sala oculta)
+  verdad          → Escribir VERDAD (en sala oculta + 15 EE)
+  firmar libro    → Disparador del libro en sala oculta
+  turnos          → Muestra turnos jugados (EE en 300+)
+  amigo imaginario→ Hablar con amigo de Sofía (en su habitación)
+
+
+═══════════════════════════════════════════════════════════════════
+  15. FLUJO ÓPTIMO PARA CADA FINAL
+═══════════════════════════════════════════════════════════════════
+
+─── RUTA LIBERTAD (más directa) ───
+  1. Explorar planta baja y primer piso
+  2. Encontrar los 4 dígitos del código (o hablar con Ramón)
+  3. Abrir trampilla en lavadero (1947)
+  4. Bajar al sótano → Sala Oculta
+  5. Firmar libro → escribir "LIBERTAD"
+
+─── RUTA ACEPTACIÓN (rendirse) ───
+  1. Mismo que Libertad
+  5. Firmar libro → escribir tu nombre
+
+─── RUTA SACRIFICIO ───
+  1. Hablar con Sofía hasta horror >= 14 (capa 3)
+  2. Cuando dice "escribe mi nombre", aceptar
+  3. Bajar al sótano → Sala Oculta
+  4. Firmar libro → escribir "SOFÍA" o "ELLA"
+
+─── RUTA VERDAD ───
+  1. Descubrir 15+ easter eggs (ver lista arriba)
+  2. Explorar TODO el mapa
+  3. Llegar a Sala Oculta
+  4. Firmar libro → escribir "VERDAD"
+
+─── RUTA REDENCIÓN (la más compleja) ★ ───
+  1. Aceptar/rechazar té de Carmen (cualquiera sirve)
+  2. Ayudar a Martín con su manuscrito (Decisión 2B) → Karma +2
+  3. Intentar escapar con Lucía o convencerla (Decisión 3A/B)
+  4. Escuchar a Ramón atentamente (Decisión 4A) → Karma +1
+  5. Prometer ayudar a Sofía (Decisión 5A) → Karma +3
+     (Aquí ya tienes Karma >= 6, suficiente)
+  6. Confrontar a Carmen en su habitación (Decisión 6A)
+  7. En el sótano, seguir el silencio (Decisión 7B) → Karma +2
+  8. En la cena, voltear la copa (Decisión 8-A2) → Karma +2
+  9. En Sala Oculta, escuchar a Nicanor con compasión (Decisión 9A)
+     → Desbloquea flag pazDisponible
+  10. Firmar libro → escribir "PAZ"
+
+  NOTA: Lo mínimo para Redención es:
+    - Karma >= 3 (al menos 2-3 decisiones compasivas)
+    - Escuchar a Nicanor en la Sala Oculta (Decisión 9A o 9C)
+
+
+═══════════════════════════════════════════════════════════════════
+  NOTAS FINALES DEL CREADOR
+═══════════════════════════════════════════════════════════════════
+
+- El juego tiene ~2065 líneas de JavaScript + 360 líneas de CSS
+- 27 habitaciones con descripciones que cambian según horror (4 niveles)
+- 5 NPCs con 3 niveles de diálogo + variaciones por decisiones
+- 9 decisiones que crean bifurcaciones narrativas
+- 6 finales (el 6to requiere la ruta más compasiva)
+- Todo el texto está en español chileno (evitar voseo argentino)
+- La firma "doChelson" aparece en la intro y el sidebar
+
+Repositorio: https://github.com/doChelson/LaCasaDeHuespedes
+
+╔══════════════════════════════════════════════════════════════════╗
+║                    FIN DE LA GUÍA                               ║
+║              La casa te recuerda, doChelson.                    ║
+╚══════════════════════════════════════════════════════════════════╝
