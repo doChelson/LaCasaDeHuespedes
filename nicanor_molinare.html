@@ -82,22 +82,20 @@ body {
   <div id="location-panel" class="panel">
     <div class="panel-header">UBICACIÓN</div>
     <div id="location-name">???</div>
+    <div id="floor-label" style="color:#664433;font-size:11px;margin-top:2px;"></div>
   </div>
-  <!-- Mapa -->
+  <!-- Mapa Grid -->
   <div id="map-panel" class="panel">
     <div class="panel-header">MAPA</div>
-    <pre id="map-display"></pre>
-    <div id="map-floor" class="map-floor-label"></div>
+    <div id="map-grid-container">
+      <div id="map-grid"></div>
+    </div>
+    <div id="map-floor-tabs"></div>
   </div>
-  <!-- Alrededores -->
+  <!-- En esta habitación -->
   <div id="room-objects-panel" class="panel">
     <div class="panel-header">EN ESTA HABITACIÓN</div>
     <div id="room-objects-list"><span class="empty-text">Nada notable.</span></div>
-  </div>
-  <!-- Acciones Rápidas -->
-  <div id="actions-panel" class="panel">
-    <div class="panel-header">ACCIONES</div>
-    <div id="quick-actions"></div>
   </div>
   <!-- Inventario -->
   <div id="inventory-panel" class="panel">
@@ -114,11 +112,6 @@ body {
       <div id="status-turnos" style="display:none;">Turnos: <span id="status-turnos-num">0</span></div>
     </div>
   </div>
-  <!-- Salidas -->
-  <div id="exits-panel" class="panel">
-    <div class="panel-header">SALIDAS</div>
-    <div id="exits-list"></div>
-  </div>
 </div>
 <!-- MAIN AREA -->
 <div id="main-area">
@@ -126,8 +119,13 @@ body {
   <div id="output-wrapper">
     <div id="output"></div>
   </div>
-  <!-- Input -->
-  <div id="input-area">
+  <!-- Navigation & Action Buttons -->
+  <div id="button-area">
+    <div id="nav-buttons"></div>
+    <div id="action-buttons"></div>
+  </div>
+  <!-- Hidden text input for special cases -->
+  <div id="input-area" style="display:none;">
     <span id="prompt-char">▸</span>
     <input type="text" id="cmd-input" placeholder="Escribe aquí..." autocomplete="off" spellcheck="false">
   </div>
@@ -431,6 +429,59 @@ body {
 @media (min-width: 769px) {
   #mobile-toggle { display: none !important; }
 }
+
+/* ===== BINDING OF ISAAC MAP ===== */
+#map-grid-container { display:flex; justify-content:center; padding:5px 0; }
+#map-grid { display:grid; gap:2px; }
+.map-cell { width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:bold; transition:all 0.3s; }
+.map-cell.empty { background:transparent; }
+.map-cell.room { background:#1a1212; border:1px solid #331a1a; color:#553333; font-size:8px; cursor:default; }
+.map-cell.room.visited { background:#201515; border:1px solid #442222; color:#775544; }
+.map-cell.room.current { background:#442222; border:2px solid #cc4444; color:#ffcc88; box-shadow:0 0 8px rgba(204,68,68,0.4); animation:currentPulse 2s ease infinite; }
+.map-cell.room.locked { background:#0f0a0a; border:1px dashed #221111; color:#221111; }
+@keyframes currentPulse { 0%,100%{box-shadow:0 0 8px rgba(204,68,68,0.4);} 50%{box-shadow:0 0 15px rgba(204,68,68,0.7);} }
+#map-floor-tabs { display:flex; gap:3px; justify-content:center; margin-top:5px; flex-wrap:wrap; }
+.floor-tab { background:#110a0a; border:1px solid #221111; color:#553333; padding:2px 6px; font-size:10px; cursor:pointer; border-radius:2px; font-family:Georgia,serif; }
+.floor-tab.active { background:#331111; border-color:#cc4444; color:#cc8866; }
+.floor-tab:hover { border-color:#664433; }
+
+/* ===== BUTTON NAVIGATION ===== */
+#button-area { border-top:1px solid #221111; background:#0c0808; padding:10px 15px; }
+#nav-buttons { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; justify-content:center; }
+#action-buttons { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
+.nav-btn {
+  background: linear-gradient(180deg, #1a1010, #120a0a);
+  border:1px solid #442222; color:#cc8866; padding:8px 14px;
+  font-family:Georgia,serif; font-size:13px; font-weight:bold;
+  cursor:pointer; border-radius:5px; transition:all 0.2s;
+  min-width:120px; text-align:center;
+}
+.nav-btn:hover { background:linear-gradient(180deg, #2a1515, #1a0f0f); border-color:#cc4444; color:#ffaa77; transform:translateY(-1px); box-shadow:0 2px 8px rgba(204,68,68,0.2); }
+.nav-btn:active { transform:translateY(0); }
+.act-btn {
+  background:#110a0a; border:1px solid #332222; color:#998866;
+  padding:5px 10px; font-family:Georgia,serif; font-size:11px;
+  cursor:pointer; border-radius:3px; transition:all 0.2s;
+}
+.act-btn:hover { background:#1a1010; border-color:#885544; color:#ccaa88; }
+.act-btn.npc-btn { border-color:#554422; color:#ccaa44; }
+.act-btn.npc-btn:hover { border-color:#aa8844; color:#ffcc66; }
+.act-btn.special-btn { border-color:#443322; color:#cc6644; }
+.act-btn.special-btn:hover { border-color:#884422; color:#ff8866; }
+
+/* ===== IMPROVED TYPOGRAPHY ===== */
+#output { max-width:750px; margin:0 auto; font-size:15px; line-height:1.8; }
+.msg { margin-bottom:10px; }
+.msg-narrator { color:#ddd8cc; font-size:15px; }
+.msg-dialog { color:#ddbb77; font-style:italic; font-size:15px; }
+.msg-horror { color:#ff5555; text-shadow:0 0 6px rgba(255,50,50,0.4); font-size:15px; font-weight:bold; }
+.cmd-echo { color:#886644; font-style:italic; margin:3px 0; opacity:0.7; font-size:13px; }
+#location-name { font-size:16px; font-weight:bold; color:#cc8866; }
+.panel-header { font-size:11px; letter-spacing:3px; }
+.room-obj-item, .room-obj-npc { font-size:13px; padding:3px 6px; }
+
+/* ===== TEXT INPUT VISIBLE WHEN NEEDED ===== */
+#input-area.visible { display:flex !important; }
 </style>
 
 <!-- segundo intro-screen eliminado -->
@@ -771,46 +822,11 @@ function updateUI() {
   else if (G.horror <= 17) { hSpan.textContent = 'Al borde'; hSpan.style.color = '#cc3333'; hSpan.classList.remove('blink-horror'); }
   else { hSpan.textContent = '...'; hSpan.style.color = '#cc2222'; hSpan.classList.add('blink-horror'); }
   
-  // Show turn counter only at horror 10+
+  // Turnos (solo horror 10+)
   const turnosDiv = document.getElementById('status-turnos');
   if (turnosDiv) {
-    if (G.horror >= 10) {
-      turnosDiv.style.display = 'block';
-      document.getElementById('status-turnos-num').textContent = G.turnos;
-    } else {
-      turnosDiv.style.display = 'none';
-    }
-  }
-
-  // Exits
-  const exitsDiv = document.getElementById('exits-list');
-  exitsDiv.innerHTML = '';
-  const dirNames = { norte:'Norte', sur:'Sur', este:'Este', oeste:'Oeste',
-    noreste:'NE', noroeste:'NO', sureste:'SE', suroeste:'SO',
-    subir:'Subir', bajar:'Bajar', entrar:'Entrar', salir:'Salir' };
-  for (const [dir, exit] of Object.entries(room.exits)) {
-    const btn = document.createElement('button');
-    btn.className = 'exit-btn';
-    const dirLabel = dirNames[dir] || dir;
-    if (typeof exit === 'object' && exit.to && rooms[exit.to]) {
-      btn.textContent = dirLabel + ' \u2192 ' + rooms[exit.to].alias;
-    } else if (typeof exit === 'string' && rooms[exit]) {
-      btn.textContent = dirLabel + ' \u2192 ' + rooms[exit].alias;
-    } else {
-      btn.textContent = dirLabel + ' \u2192 ???';
-    }
-    btn.onclick = () => processCommand(`ir ${dir}`);
-    exitsDiv.appendChild(btn);
-  }
-
-  // Inventory
-  const invDiv = document.getElementById('inventory-list');
-  if (G.inventory.length === 0) {
-    invDiv.innerHTML = '<span class="empty-text">No llevas nada.</span>';
-  } else {
-    invDiv.innerHTML = G.inventory.map(item =>
-      `<div class="inv-item" onclick="processCommand('examinar ${item.name.toLowerCase()}')">${item.name}</div>`
-    ).join('');
+    if (G.horror >= 10) { turnosDiv.style.display = 'block'; document.getElementById('status-turnos-num').textContent = G.turnos; }
+    else { turnosDiv.style.display = 'none'; }
   }
 
   // Room Objects Panel
@@ -823,142 +839,244 @@ function updateUI() {
       roomObjDiv.innerHTML = objEntries.map(([key, obj]) => {
         const name = obj.alias || key;
         const isNPC = !!obj.speak;
-        const icon = isNPC ? '\u{1F464} ' : '';
+        const icon = isNPC ? '\u{1F464} ' : '\u{1F50D} ';
         const cls = isNPC ? 'room-obj-npc' : 'room-obj-item';
-        return '<div class="' + cls + '" onclick="processCommand(\'examinar ' + name.toLowerCase() + '\')">' + icon + name + '</div>';
+        return '<div class="' + cls + '" onclick="doAction(\'examinar ' + name.toLowerCase().replace(/'/g, "\\\'") + '\')">' + icon + name + '</div>';
       }).join('');
     }
   }
 
-  // Contextual Quick Actions
-  const actDiv = document.getElementById('quick-actions');
-  actDiv.innerHTML = '';
-  const contextActions = [];
-  
-  // Always available
-  contextActions.push({ label: 'Mirar', cmd: 'mirar' });
-  contextActions.push({ label: 'Inventario', cmd: 'inventario' });
-  
-  // NPC actions
-  if (room.objects) {
-    for (const [key, obj] of Object.entries(room.objects)) {
-      if (obj.speak) {
-        contextActions.push({ label: 'Hablar con ' + (obj.alias || key), cmd: 'hablar con ' + (obj.alias || key).toLowerCase() });
+  // Inventory
+  const invDiv = document.getElementById('inventory-list');
+  if (G.inventory.length === 0) {
+    invDiv.innerHTML = '<span class="empty-text">No llevas nada.</span>';
+  } else {
+    invDiv.innerHTML = G.inventory.map(item =>
+      '<div class="inv-item" onclick="doAction(\'examinar ' + item.name.toLowerCase() + '\')">' + item.name + '</div>'
+    ).join('');
+  }
+
+  // === NAVIGATION BUTTONS (replaces text input) ===
+  const navDiv = document.getElementById('nav-buttons');
+  if (navDiv) {
+    navDiv.innerHTML = '';
+    for (const [dir, exit] of Object.entries(room.exits)) {
+      const btn = document.createElement('button');
+      btn.className = 'nav-btn';
+      
+      // Get destination name
+      let destName = '???';
+      if (typeof exit === 'object' && exit.to && rooms[exit.to]) {
+        destName = rooms[exit.to].alias;
+      } else if (typeof exit === 'string' && rooms[exit]) {
+        destName = rooms[exit].alias;
       }
-      if (obj.take) {
-        contextActions.push({ label: 'Tomar ' + (obj.alias || key), cmd: 'tomar ' + (obj.alias || key).toLowerCase() });
+      
+      // Check if locked
+      const isLocked = typeof exit === 'object' && exit.locked;
+      if (isLocked) {
+        btn.textContent = '\u{1F512} ' + destName;
+        btn.style.opacity = '0.5';
+        btn.style.borderStyle = 'dashed';
+      } else {
+        btn.textContent = destName;
       }
+      
+      btn.onclick = () => doAction('ir ' + dir);
+      navDiv.appendChild(btn);
     }
   }
-  
-  // Room-specific actions
-  if (G.currentRoom === 'cocina') contextActions.push({ label: 'Comer estofado', cmd: 'comer estofado' });
-  if (G.currentRoom === 'tu_habitacion') contextActions.push({ label: 'Dormir', cmd: 'dormir' });
-  if (G.currentRoom === 'bano_visitas' || G.currentRoom === 'bano_primer_piso') contextActions.push({ label: 'Examinar espejo', cmd: 'examinar espejo' });
-  
-  // Generic fallbacks if not many specific
-  if (contextActions.length < 5) {
-    contextActions.push({ label: 'Oler', cmd: 'oler' });
-    contextActions.push({ label: 'Escuchar', cmd: 'escuchar' });
-  }
-  
-  contextActions.forEach(a => {
-    const btn = document.createElement('button');
-    btn.className = 'action-btn';
-    btn.textContent = a.label;
-    btn.onclick = () => {
-      if (a.cmd.includes(' ') && !a.cmd.startsWith('hablar') && !a.cmd.startsWith('tomar') && !a.cmd.startsWith('comer') && !a.cmd.startsWith('examinar') && a.cmd !== 'mirar' && a.cmd !== 'inventario' && a.cmd !== 'oler' && a.cmd !== 'escuchar' && a.cmd !== 'dormir') {
-        const inp = document.getElementById('cmd-input');
-        inp.value = a.cmd + ' ';
-        inp.focus();
-      } else {
-        processCommand(a.cmd);
-        runTurnScripts();
+
+  // === ACTION BUTTONS ===
+  const actDiv = document.getElementById('action-buttons');
+  if (actDiv) {
+    actDiv.innerHTML = '';
+    const actions = [];
+    
+    // NPC talk buttons
+    if (room.objects) {
+      for (const [key, obj] of Object.entries(room.objects)) {
+        if (obj.speak) {
+          actions.push({ label: '\u{1F4AC} Hablar con ' + (obj.alias || key), cmd: 'hablar con ' + (obj.alias || key).toLowerCase(), cls: 'npc-btn' });
+        }
       }
-    };
-    actDiv.appendChild(btn);
-  });
+    }
+    
+    // Take buttons
+    if (room.objects) {
+      for (const [key, obj] of Object.entries(room.objects)) {
+        if (obj.take) {
+          actions.push({ label: '\u{270B} Tomar ' + (obj.alias || key), cmd: 'tomar ' + (obj.alias || key).toLowerCase(), cls: '' });
+        }
+      }
+    }
+    
+    // Room-specific
+    if (G.currentRoom === 'cocina') actions.push({ label: '\u{1F372} Comer estofado', cmd: 'comer estofado', cls: 'special-btn' });
+    if (G.currentRoom === 'tu_habitacion') actions.push({ label: '\u{1F4A4} Dormir', cmd: 'dormir', cls: 'special-btn' });
+    if (G.currentRoom === 'bano_visitas' || G.currentRoom === 'bano_primer_piso') actions.push({ label: '\u{1FA9E} Examinar espejo', cmd: 'examinar espejo', cls: 'special-btn' });
+    if (G.currentRoom === 'sala_oculta') actions.push({ label: '\u{1F4D6} Firmar libro', cmd: 'firmar libro', cls: 'special-btn' });
+    if (G.currentRoom === 'lavadero' && !G.flags.abrioSotano) actions.push({ label: '\u{1F510} Abrir trampilla', cmd: 'abrir sotano', cls: 'special-btn' });
+    
+    // Universal actions
+    actions.push({ label: 'Mirar', cmd: 'mirar', cls: '' });
+    actions.push({ label: 'Oler', cmd: 'oler', cls: '' });
+    actions.push({ label: 'Escuchar', cmd: 'escuchar', cls: '' });
+    actions.push({ label: 'Inventario', cmd: 'inventario', cls: '' });
+    actions.push({ label: 'Ayuda', cmd: 'ayuda', cls: '' });
+    
+    actions.forEach(a => {
+      const btn = document.createElement('button');
+      btn.className = 'act-btn ' + (a.cls || '');
+      btn.textContent = a.label;
+      btn.onclick = () => doAction(a.cmd);
+      actDiv.appendChild(btn);
+    });
+  }
 
   // Map
   updateMap();
 }
 
+// Central action handler (replaces typing)
+function doAction(cmd) {
+  if (G.gameOver) return;
+  const out = document.getElementById('output');
+  const cmdDiv = document.createElement('div');
+  cmdDiv.className = 'cmd-echo';
+  cmdDiv.textContent = '> ' + cmd;
+  out.appendChild(cmdDiv);
+  
+  processCommand(cmd);
+  runTurnScripts();
+  
+  // Turn separator
+  const sep = document.createElement('div');
+  sep.style.cssText = 'border-top:1px solid #1a1111;margin:12px 0;opacity:0.3;';
+  out.appendChild(sep);
+  
+  out.scrollTop = out.scrollHeight;
+  updateUI();
+}
+
+
 // ============================================================
 // MAP SYSTEM
 // ============================================================
-const mapData = {
-  ext: { label: 'EXTERIOR', rooms: {
-    jardin_frontal:'Jardín', camino_pueblo:'Camino', plaza_pueblo:'Plaza',
-    calle_pueblo:'Calle', camino_regreso:'Regreso'
-  }, ascii: `  Regreso
-     |
-   Calle
-     |
-   Plaza
-     |
-  Camino
-     |
-  Jardín
-     |
-  CASA ▲`, note: '▲ Casa' },
-  pb: { label: 'PLANTA BAJA', rooms: {
-    recepcion:'Recepción', sala_estar:'Sala', comedor:'Comedor',
-    cocina:'Cocina', bano_visitas:'Baño', pasillo_servicio:'P.Servicio', lavadero:'Lavadero'
-  }, ascii: ` Sala      Lavadero
-  |           |
-  |       P.Servicio
-  |           |
- Baño--Recepción--Comedor--Cocina`, note: '▲ 1er Piso  ▼ Exterior' },
-  p1: { label: 'PRIMER PISO', rooms: {
-    pasillo_primer_piso:'Pasillo', tu_habitacion:'TuHab', habitacion_martin:'Martín',
-    habitacion_lucia:'Lucía', habitacion_ramon:'Ramón', habitacion_sofia:'Sofía',
-    bano_primer_piso:'Baño1P'
-  }, ascii: `Baño1P TuHab  Sofía
-   \\     |    /
-  Pasillo 1er Piso
-   /     |    \\
- Ramón Martín Lucía`, note: '▲ 2do Piso  ▼ Planta Baja' },
-  p2: { label: 'SEGUNDO PISO', rooms: {
-    escalera_segundo_piso:'Escalera', atico:'Ático', habitacion_carmen:'Carmen', cuarto_servicio:'C.Servicio'
-  }, ascii: ` Ático    Carmen
-    \\      /
-  Escalera 2P
-      |
- C.Servicio`, note: '▼ 1er Piso' },
-  sot: { label: 'SÓTANO', rooms: {
-    escalera_sotano:'Esc.Sótano', bodega:'Bodega', cuarto_frio:'C.Frío', sala_oculta:'Sala Oculta'
-  }, ascii: `   Bodega
-      |
- Esc.Sótano
-      |
-   C.Frío
-      |
- Sala Oculta`, note: '▲ Lavadero' }
+// ============================================================
+// MAP GRID SYSTEM (Binding of Isaac style)
+// ============================================================
+const mapGridLayouts = {
+  ext: {
+    label: 'Exterior', cols: 1, rows: 5,
+    grid: [
+      ['camino_regreso'],
+      ['calle_pueblo'],
+      ['plaza_pueblo'],
+      ['camino_pueblo'],
+      ['jardin_frontal']
+    ]
+  },
+  pb: {
+    label: 'Planta Baja', cols: 4, rows: 3,
+    grid: [
+      ['sala_estar', null, 'lavadero', null],
+      [null, null, 'pasillo_servicio', null],
+      ['bano_visitas', 'recepcion', 'comedor', 'cocina']
+    ]
+  },
+  p1: {
+    label: 'Primer Piso', cols: 3, rows: 3,
+    grid: [
+      ['habitacion_sofia', 'tu_habitacion', 'habitacion_ramon'],
+      [null, 'pasillo_primer_piso', null],
+      ['habitacion_lucia', 'bano_primer_piso', 'habitacion_martin']
+    ]
+  },
+  p2: {
+    label: 'Segundo Piso', cols: 3, rows: 2,
+    grid: [
+      ['cuarto_servicio', 'escalera_segundo_piso', 'habitacion_carmen'],
+      [null, 'atico', null]
+    ]
+  },
+  sot: {
+    label: 'Sotano', cols: 1, rows: 4,
+    grid: [
+      ['escalera_sotano'],
+      ['bodega'],
+      ['cuarto_frio'],
+      ['sala_oculta']
+    ]
+  }
 };
 
-function updateMap() {
+// Track visited rooms
+if (!G.visitedRooms) G.visitedRooms = new Set();
+
+function updateMap(targetFloor) {
   const room = getCurrentRoom();
   if (!room) return;
-  const floor = room.floor;
-  const data = mapData[floor];
-  if (!data) return;
-
-  let ascii = data.ascii;
-  // Highlight current room
-  const roomLabel = data.rooms[G.currentRoom];
-  if (roomLabel) {
-    ascii = ascii.replace(roomLabel, `[${roomLabel}]`);
+  G.visitedRooms.add(G.currentRoom);
+  
+  const floor = targetFloor || room.floor;
+  const layout = mapGridLayouts[floor];
+  if (!layout) return;
+  
+  const grid = document.getElementById('map-grid');
+  grid.innerHTML = '';
+  grid.style.gridTemplateColumns = 'repeat(' + layout.cols + ', 28px)';
+  grid.style.gridTemplateRows = 'repeat(' + layout.rows + ', 28px)';
+  
+  for (let r = 0; r < layout.rows; r++) {
+    for (let cl = 0; cl < layout.cols; cl++) {
+      const cell = document.createElement('div');
+      cell.className = 'map-cell';
+      const roomId = layout.grid[r][cl];
+      
+      if (!roomId) {
+        cell.classList.add('empty');
+      } else {
+        cell.classList.add('room');
+        const rm = rooms[roomId];
+        const shortName = rm ? (rm.alias || roomId).substring(0, 4) : '?';
+        
+        if (roomId === G.currentRoom) {
+          cell.classList.add('current');
+          cell.textContent = shortName;
+        } else if (G.visitedRooms.has(roomId)) {
+          cell.classList.add('visited');
+          cell.textContent = shortName;
+        } else {
+          cell.textContent = '?';
+        }
+      }
+      grid.appendChild(cell);
+    }
   }
-
-  document.getElementById('map-display').textContent = ascii;
-  document.getElementById('map-floor').textContent = data.note || '';
-
-  // Floor label in panel header
-  const mapHeader = document.querySelector('#map-panel .panel-header');
-  mapHeader.textContent = `MAPA — ${data.label}`;
+  
+  // Floor tabs
+  const tabs = document.getElementById('map-floor-tabs');
+  tabs.innerHTML = '';
+  const floorOrder = ['ext','pb','p1','p2','sot'];
+  const floorLabels = { ext:'Ext', pb:'PB', p1:'1P', p2:'2P', sot:'Sot' };
+  floorOrder.forEach(f => {
+    const tab = document.createElement('div');
+    tab.className = 'floor-tab' + (f === floor ? ' active' : '');
+    tab.textContent = floorLabels[f];
+    tab.onclick = () => updateMap(f);
+    tabs.appendChild(tab);
+  });
+  
+  // Floor label
+  const floorLabel = document.getElementById('floor-label');
+  if (floorLabel) {
+    const floorNames = { ext:'Exterior', pb:'Planta Baja', p1:'Primer Piso', p2:'Segundo Piso', sot:'Sotano' };
+    floorLabel.textContent = floorNames[room.floor] || '';
+  }
 }
-</script>
-<script>
+
+
 // ============================================================
 // COMMAND PARSER
 // ============================================================
@@ -982,6 +1100,11 @@ cmdInput.addEventListener('keydown', e => {
       const cb = G.inputCallback;
       G.inputCallback = null;
       G.inputMode = 'command';
+      // Restore button UI
+      const inputAreaR = document.getElementById('input-area');
+      const btnAreaR = document.getElementById('button-area');
+      if (inputAreaR) inputAreaR.style.display = 'none';
+      if (btnAreaR) btnAreaR.style.display = 'block';
       cb(val);
       return;
     }
@@ -998,10 +1121,16 @@ cmdInput.addEventListener('keydown', e => {
 });
 
 function getInput(prompt, callback) {
-  if (prompt) msg(prompt);
+  msg(prompt);
   G.inputMode = 'getInput';
   G.inputCallback = callback;
-  cmdInput.focus();
+  // Show text input for special input
+  const inputArea = document.getElementById('input-area');
+  const btnArea = document.getElementById('button-area');
+  if (inputArea) inputArea.style.display = 'flex';
+  if (btnArea) btnArea.style.display = 'none';
+  const cmdInput = document.getElementById('cmd-input');
+  if (cmdInput) { cmdInput.placeholder = 'Escribe tu respuesta...'; cmdInput.focus(); }
 }
 
 function waitForKey(callback) {
@@ -2577,10 +2706,9 @@ function initGame() {
     msg("Una mujer mayor de sonrisa calida aparece en la puerta."); br();
     msg("'\u00a1Bienvenido, " + G.nombreJugador + "! Te estabamos esperando. Soy Carmen. Pasa, pasa, que el estofado esta listo y tu habitacion esta preparada.'"); br();
     msg("Te registras en el libro de visitas. Carmen te muestra la casa con orgullo maternal. Todo parece perfecto. Demasiado perfecto."); br();
-    msg('<div style="color:#666;font-style:italic;">Escribe comandos para interactuar: ir norte/sur/este/oeste, examinar [objeto], hablar con [persona], tomar [objeto], usar [objeto], inventario, ayuda</div>');
+    msg('<div style="color:#666;font-style:italic;">Usa los botones de abajo para moverte y las acciones del panel para interactuar. Explora la casa...</div>');
     
     moveToRoom('recepcion');
-    document.getElementById('cmd-input').focus();
   });
   
   // (event listener movido al parser principal)
