@@ -1,0 +1,2594 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nicanor Molinare</title>
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  background: #0a0a0a;
+  color: #d4d4c8;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 14px;
+  line-height: 1.7;
+  display: flex;
+  transition: background-color 2s ease;
+}
+
+/* ===== LAYOUT ===== */
+#game-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+#sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: #0f0808;
+  border-right: 1px solid #331111;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  transition: background-color 2s ease;
+}
+#main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* CMD ECHO */
+.cmd-echo { color: #886644; font-style: italic; margin: 3px 0; opacity: 0.8; }
+/* HORROR TEXT */
+.horror-text { color: #cc4444; text-shadow: 0 0 8px rgba(204,68,68,0.3); }
+/* EASTER TEXT */
+.easter-text { color: #ccaa44; font-style: italic; }
+/* INTRO hover */
+#intro-start:hover { background: #552222; color: #ffaa88; }
+#intro-name:focus { border-color: #cc4444; box-shadow: 0 0 10px rgba(204,68,68,0.3); }
+</style>
+</head>
+<body>
+
+<div id="intro-screen">
+  <div class="intro-title">NICANOR MOLINARE</div>
+  <div class="intro-subtitle">La Casa de Huéspedes</div>
+  <div class="intro-tagline">
+    "Todos los que llegan se quedan.<br>
+    Todos los que se quedan olvidan.<br>
+    Todos los que olvidan... son felices."
+  </div>
+  <div style="margin-top:30px;">
+    <label style="color:#888;font-size:13px;display:block;margin-bottom:8px;">Tu nombre, viajero:</label>
+    <input type="text" id="intro-name" style="background:#1a0a0a;border:1px solid #442222;color:#d4d4c8;padding:10px 15px;font-family:Georgia,serif;font-size:16px;width:250px;text-align:center;outline:none;" placeholder="Escribe tu nombre..." autofocus>
+    <div id="intro-name-error" style="color:#cc4444;font-size:12px;margin-top:6px;opacity:0;transition:opacity 0.5s;font-style:italic;">La casa necesita un nombre. Todos los huéspedes tienen nombre.</div>
+  </div>
+  <div style="margin-top:15px;">
+    <label style="color:#888;font-size:13px;display:block;margin-bottom:8px;">Fecha de nacimiento:</label>
+    <input type="date" id="intro-date" style="background:#1a0a0a;border:1px solid #442222;color:#d4d4c8;padding:10px 15px;font-family:Georgia,serif;font-size:14px;width:250px;text-align:center;outline:none;color-scheme:dark;">
+  </div>
+  <button id="intro-start" style="margin-top:25px;background:#331111;border:1px solid #552222;color:#cc8866;padding:10px 30px;font-family:Georgia,serif;font-size:14px;cursor:pointer;letter-spacing:3px;transition:all 0.3s;">ENTRAR</button>
+</div>
+
+<button id="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">\u2630 Menu</button>
+<div id="game-container">
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <!-- Ubicación -->
+  <div id="location-panel" class="panel">
+    <div class="panel-header">UBICACIÓN</div>
+    <div id="location-name">???</div>
+  </div>
+  <!-- Mapa -->
+  <div id="map-panel" class="panel">
+    <div class="panel-header">MAPA</div>
+    <pre id="map-display"></pre>
+    <div id="map-floor" class="map-floor-label"></div>
+  </div>
+  <!-- Alrededores -->
+  <div id="room-objects-panel" class="panel">
+    <div class="panel-header">EN ESTA HABITACIÓN</div>
+    <div id="room-objects-list"><span class="empty-text">Nada notable.</span></div>
+  </div>
+  <!-- Acciones Rápidas -->
+  <div id="actions-panel" class="panel">
+    <div class="panel-header">ACCIONES</div>
+    <div id="quick-actions"></div>
+  </div>
+  <!-- Inventario -->
+  <div id="inventory-panel" class="panel">
+    <div class="panel-header">INVENTARIO</div>
+    <div id="inventory-list"><span class="empty-text">No llevas nada.</span></div>
+  </div>
+  <!-- Estado -->
+  <div id="status-panel" class="panel">
+    <div class="panel-header">ESTADO</div>
+    <div id="status-info">
+      <div>Acto: <span id="status-acto">1</span></div>
+      <div id="status-mental">Estado mental: <span id="status-horror">Tranquilo</span></div>
+      <div>Secretos: <span id="status-secrets">0</span>/25</div>
+      <div id="status-turnos" style="display:none;">Turnos: <span id="status-turnos-num">0</span></div>
+    </div>
+  </div>
+  <!-- Salidas -->
+  <div id="exits-panel" class="panel">
+    <div class="panel-header">SALIDAS</div>
+    <div id="exits-list"></div>
+  </div>
+</div>
+<!-- MAIN AREA -->
+<div id="main-area">
+  <!-- Output -->
+  <div id="output-wrapper">
+    <div id="output"></div>
+  </div>
+  <!-- Input -->
+  <div id="input-area">
+    <span id="prompt-char">▸</span>
+    <input type="text" id="cmd-input" placeholder="Escribe aquí..." autocomplete="off" spellcheck="false">
+  </div>
+</div>
+</div><!-- /game-container -->
+
+<!-- HORROR OVERLAY (for screen effects) -->
+<div id="horror-overlay"></div>
+<div id="vignette"></div>
+
+<style>
+/* ===== SIDEBAR STYLES ===== */
+.panel {
+  border-bottom: 1px solid #221111;
+  padding: 12px;
+}
+.panel-header {
+  color: #cc4444;
+  font-size: 10px;
+  letter-spacing: 3px;
+  margin-bottom: 8px;
+  font-family: 'Courier New', monospace;
+}
+#location-name {
+  color: #cc8866;
+  font-size: 15px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(204,68,68,0.3);
+}
+#map-display {
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  color: #666;
+  line-height: 1.4;
+  white-space: pre;
+  text-align: center;
+}
+.map-floor-label {
+  text-align: center;
+  color: #555;
+  font-size: 9px;
+  font-style: italic;
+  margin-top: 5px;
+}
+#quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.action-btn {
+  background: #1a0a0a;
+  color: #cc8866;
+  border: 1px solid #331111;
+  padding: 5px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 3px;
+  font-family: Georgia, serif;
+  transition: all 0.2s;
+}
+.action-btn:hover { background: #2a1515; border-color: #552222; }
+#inventory-list { color: #999; font-size: 12px; }
+.empty-text { color: #555; font-style: italic; }
+.inv-item {
+  color: #cc8866;
+  cursor: pointer;
+  padding: 2px 0;
+  transition: color 0.2s;
+}
+.inv-item:hover { color: #ffaa66; }
+#status-info { color: #888; font-size: 11px; font-family: 'Courier New', monospace; }
+#status-horror { color: #cc4444; }
+#exits-list { display: flex; flex-wrap: wrap; gap: 4px; }
+.exit-btn {
+  background: #110808;
+  color: #998866;
+  border: 1px solid #221111;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  border-radius: 3px;
+  font-family: Georgia, serif;
+  transition: all 0.2s;
+}
+.exit-btn:hover { background: #221515; color: #ccaa66; }
+
+/* ===== MAIN OUTPUT ===== */
+#output-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 30px;
+  scroll-behavior: smooth;
+}
+#output { max-width: 700px; margin: 0 auto; }
+.msg { margin-bottom: 8px; animation: fadeIn 0.3s ease; }
+.msg-narrator { color: #d4d4c8; }
+.msg-dialog { color: #ccaa66; font-style: italic; }
+.msg-system { color: #cc4444; text-align: center; letter-spacing: 2px; }
+.msg-horror { color: #ff4444; text-shadow: 0 0 5px rgba(255,50,50,0.4); }
+.msg-easter { color: #88cc88; font-style: italic; }
+.msg-separator { color: #333; text-align: center; letter-spacing: 4px; }
+.msg-acto {
+  color: #cc4444;
+  text-align: center;
+  font-size: 16px;
+  letter-spacing: 4px;
+  padding: 15px 0;
+  text-shadow: 0 0 15px rgba(204,68,68,0.5);
+}
+.msg-final-title {
+  color: #cc4444;
+  text-align: center;
+  font-size: 20px;
+  letter-spacing: 6px;
+  text-shadow: 0 0 20px rgba(204,68,68,0.6);
+  padding: 20px 0;
+}
+.msg-recuerdo {
+  color: #8888aa;
+  border-left: 2px solid #334;
+  padding-left: 15px;
+  font-style: italic;
+}
+.link-action {
+  color: #cc4444;
+  cursor: pointer;
+  text-decoration: none;
+  border-bottom: 1px dotted #cc4444;
+  transition: color 0.2s;
+}
+.link-action:hover { color: #ff6666; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== INPUT ===== */
+#input-area {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  border-top: 1px solid #221111;
+  background: #0c0808;
+}
+#prompt-char {
+  color: #cc4444;
+  font-size: 16px;
+  margin-right: 10px;
+  font-family: monospace;
+}
+#cmd-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #d4d4c8;
+  font-family: Georgia, serif;
+  font-size: 14px;
+  caret-color: #cc4444;
+}
+#cmd-input::placeholder { color: #444; }
+
+/* ===== HORROR EFFECTS ===== */
+#horror-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 100;
+  transition: all 1s ease;
+}
+#vignette {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 99;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.6) 100%);
+}
+.shake { animation: shake 0.3s infinite !important; }
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+  100% { transform: translateX(0); }
+}
+@keyframes pulse-bg {
+  0% { background-color: #0a0a0a; }
+  50% { background-color: #0e0606; }
+  100% { background-color: #0a0a0a; }
+}
+.pulse-horror { animation: pulse-bg 4s infinite; }
+@keyframes glitch {
+  0% { transform: translate(0); filter: none; }
+  20% { transform: translate(-2px, 1px); filter: hue-rotate(90deg); }
+  40% { transform: translate(1px, -1px); filter: hue-rotate(0deg); }
+  60% { transform: translate(-1px, 2px); filter: hue-rotate(180deg); }
+  80% { transform: translate(2px, -2px); filter: hue-rotate(270deg); }
+  100% { transform: translate(0); filter: none; }
+}
+.scanlines::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 101;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0,0,0,0.15) 0px,
+    rgba(0,0,0,0.15) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #331111; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #552222; }
+
+/* ===== INTRO SCREEN ===== */
+#intro-screen {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #0a0a0a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  opacity: 1;
+  transition: opacity 1.5s ease;
+}
+#intro-screen.fade-out { opacity: 0; }
+.intro-title {
+  color: #cc4444;
+  font-size: 32px;
+  letter-spacing: 12px;
+  text-shadow: 0 0 30px rgba(204,68,68,0.4);
+  margin-bottom: 5px;
+}
+.intro-subtitle {
+  color: #cc8866;
+  font-size: 18px;
+  letter-spacing: 6px;
+  margin-bottom: 30px;
+}
+.intro-tagline {
+  color: #888;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.8;
+  text-align: center;
+  margin-bottom: 40px;
+}
+.intro-prompt {
+  color: #cc4444;
+  font-size: 14px;
+  letter-spacing: 2px;
+  animation: blink 1.5s infinite;
+}
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+.intro-ornament {
+  color: #442222;
+  letter-spacing: 6px;
+  margin: 10px 0;
+}
+
+/* ===== ROOM OBJECTS PANEL ===== */
+.room-obj-item { color: #cc8866; cursor: pointer; padding: 2px 6px; margin: 1px 0; font-size: 13px; transition: color 0.2s; }
+.room-obj-item:hover { color: #ffaa88; background: #1a0a0a; }
+.room-obj-npc { color: #ccaa66; cursor: pointer; padding: 2px 6px; margin: 1px 0; font-size: 13px; transition: color 0.2s; }
+.room-obj-npc:hover { color: #ffcc88; background: #1a0a0a; }
+
+/* ===== FADE-IN EFFECT ===== */
+.room-fade-in { animation: roomFade 0.5s ease; }
+@keyframes roomFade { from { opacity: 0.3; } to { opacity: 1; } }
+
+/* ===== BLINK HORROR ===== */
+.blink-horror { animation: blinkH 1.5s ease infinite; }
+@keyframes blinkH { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  #game-container { flex-direction: column-reverse; }
+  #sidebar {
+    width: 100%; min-width: 100%;
+    max-height: 0; overflow: hidden;
+    border-right: none; border-top: 1px solid #331111;
+    transition: max-height 0.3s ease;
+  }
+  #sidebar.open { max-height: 60vh; overflow-y: auto; }
+  #main-area { height: 100%; }
+  #output-wrapper { padding: 12px 15px; }
+  .exit-btn { font-size: 10px; padding: 3px 7px; }
+  .action-btn { font-size: 10px; padding: 3px 7px; }
+  #mobile-toggle {
+    display: block !important;
+    position: fixed; bottom: 55px; right: 10px; z-index: 100;
+    background: #331111; border: 1px solid #552222; color: #cc8866;
+    padding: 8px 12px; font-family: Georgia, serif; font-size: 12px;
+    cursor: pointer; border-radius: 4px;
+  }
+}
+@media (min-width: 769px) {
+  #mobile-toggle { display: none !important; }
+}
+</style>
+
+<!-- segundo intro-screen eliminado -->
+
+<script>
+// ============================================================
+// NICANOR MOLINARE — Motor del Juego (HTML/JS)
+// ============================================================
+
+const G = {
+  // Estado del juego
+  horror: 0,
+  turnos: 0,
+  acto: 1,
+  nombreJugador: '',
+  fechaNacimiento: '',
+  codigoSotano: '1947',
+  currentRoom: null,
+  inventory: [],
+  inputMode: 'intro', // intro, getName, getDate, command, getInput
+  inputCallback: null,
+  gameStarted: false,
+
+  // Flags booleanos
+  flags: {
+    encontroDiario: false, abrioSotano: false, habloSofiaCapa3: false,
+    vioTumba: false, visitoPueblo: false, visitoPueblo2: false,
+    carmenOfrecioVela: false, tieneVela: false, tieneLinterna: false,
+    linternaPilas: false, pilasDisponibles: false, cajasMov: false,
+    bebioFrasco: false, frascoDisponible: false,
+    llaveAticoEncontrada: false, tieneLlaveAtico: false,
+    tieneLlaveCarmen: false, tieneLlaveSalaOculta: false,
+    cofreAbierto: false, habloAmigoImaginario: false,
+    ayudoMartin: false, ayudoLucia: false, ayudoRamon: false,
+    ayudoSofia: false, ayudoCarmen: false,
+    puebloDesaparecido: false, notaInvAgregada: false,
+    vioCuadernoContabilidad: false, vioLibroRegistroSexto: false,
+    salvoSofia: false, archivoCreado: false,
+    mostroHito5: false, mostroHito10: false, mostroHito14: false, mostroHito18: false,
+    encontroPagina2: false, encontroPagina3: false,
+    digito1: false, digito2: false, digito3: false, digito4: false,
+    recuerdo1: false, recuerdo2: false, recuerdo3: false,
+  },
+
+  // Contadores
+  comioEstofado: 0, vecesEspejoVisitas: 0, vecesEspejoBano: 0,
+  vecesAyuda: 0, paginasDiario: 0, examinoDibujos: 0,
+  easterEggs: 0, libroSecuencia: 0,
+
+  // Easter egg flags (separados para tracking)
+  easters: {},
+
+  // Helpers
+  easter(name) {
+    if (!this.easters[name]) { this.easters[name] = true; this.easterEggs++; this.updateUI(); }
+  }
+};
+</script>
+<script>
+// ============================================================
+// OUTPUT SYSTEM
+// ============================================================
+const output = document.getElementById('output');
+const outputWrapper = document.getElementById('output-wrapper');
+
+function msg(text, cls = 'narrator') {
+  const div = document.createElement('div');
+  div.className = `msg msg-${cls}`;
+  div.innerHTML = text;
+  output.appendChild(div);
+  scrollToBottom();
+}
+
+function msgDialog(text) { msg(text, 'dialog'); }
+function msgSystem(text) { msg(text, 'system'); }
+function msgHorror(text) { msg(text, 'horror'); }
+function msgEaster(text) { msg(text, 'easter'); }
+function msgSep() { msg('◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆ ◇ ◆', 'separator'); }
+function msgActo(text) { msg(text, 'acto'); }
+function msgRecuerdo(text) { msg(text, 'recuerdo'); }
+function br() { msg('&nbsp;', 'narrator'); }
+
+function clearScreen() { output.innerHTML = ''; }
+
+function scrollToBottom() {
+  requestAnimationFrame(() => { outputWrapper.scrollTop = outputWrapper.scrollHeight; });
+}
+
+function typeWriter(text, cls, speed = 30) {
+  return new Promise(resolve => {
+    const div = document.createElement('div');
+    div.className = `msg msg-${cls}`;
+    output.appendChild(div);
+    let i = 0;
+    const timer = setInterval(() => {
+      if (i < text.length) { div.innerHTML += text.charAt(i); i++; scrollToBottom(); }
+      else { clearInterval(timer); resolve(); }
+    }, speed);
+  });
+}
+
+// ============================================================
+// AUDIO SYSTEM (Web Audio API)
+// ============================================================
+let audioCtx, masterGain, droneOsc;
+function initAudio() {
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.03;
+    masterGain.connect(audioCtx.destination);
+    droneOsc = audioCtx.createOscillator();
+    droneOsc.type = 'sine';
+    droneOsc.frequency.value = 55;
+    droneOsc.connect(masterGain);
+    droneOsc.start();
+  } catch(e) {}
+}
+
+function playSound(type) {
+  if (!audioCtx) return;
+  try {
+    if (type === 'golpe') {
+      const b = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.1, audioCtx.sampleRate);
+      const d = b.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random()*2-1)*Math.exp(-i/1000);
+      const s = audioCtx.createBufferSource(); s.buffer = b;
+      const f = audioCtx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 200;
+      s.connect(f); f.connect(audioCtx.destination); s.start();
+    } else if (type === 'chirrido') {
+      const o = audioCtx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = 300;
+      const g = audioCtx.createGain(); g.gain.value = 0.1;
+      o.connect(g); g.connect(audioCtx.destination); o.start();
+      o.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.5);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.8);
+      o.stop(audioCtx.currentTime + 0.8);
+    } else if (type === 'susurro') {
+      const b = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.5, audioCtx.sampleRate);
+      const d = b.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random()*2-1)*0.05;
+      const s = audioCtx.createBufferSource(); s.buffer = b;
+      const f = audioCtx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 800;
+      s.connect(f); f.connect(audioCtx.destination); s.start();
+    }
+  } catch(e) {}
+}
+
+function updateAudio() {
+  if (!audioCtx || !droneOsc) return;
+  try {
+    if (G.horror >= 7) droneOsc.frequency.value = 40;
+    if (G.horror >= 14) droneOsc.frequency.value = 30;
+  } catch(e) {}
+}
+
+// ============================================================
+// HORROR EFFECTS SYSTEM
+// ============================================================
+function updateHorrorEffects() {
+  const body = document.body;
+  const overlay = document.getElementById('horror-overlay');
+  const ow = document.getElementById('output-wrapper');
+
+  // Progressive color shifts
+  if (G.horror >= 7) {
+    body.style.backgroundColor = '#0a0808';
+    document.getElementById('sidebar').style.backgroundColor = '#0e0606';
+  }
+  if (G.horror >= 10) {
+    ow.classList.add('shake');
+    setTimeout(() => ow.classList.remove('shake'), 300);
+  }
+  if (G.horror >= 14) {
+    body.style.backgroundColor = '#090606';
+    body.classList.add('pulse-horror');
+    body.classList.add('scanlines');
+  }
+  if (G.horror >= 17) {
+    body.style.backgroundColor = '#080404';
+  }
+
+  // Update vignette intensity
+  const vig = document.getElementById('vignette');
+  const intensity = Math.min(0.8, 0.3 + (G.horror / 20) * 0.5);
+  vig.style.background = `radial-gradient(ellipse at center, transparent ${60 - G.horror * 2}%, rgba(0,0,0,${intensity}) 100%)`;
+
+  updateAudio();
+}
+
+function incrementHorror(amount) {
+  G.horror = Math.min(20, G.horror + amount);
+  updateHorrorEffects();
+  applyHorrorEffects(G.horror);
+  updateUI();
+
+  if (G.horror >= 5 && !G.flags.mostroHito5) {
+    G.flags.mostroHito5 = true;
+    br(); msgHorror("Sientes un escalofrío que te recorre la espalda. Algo no está bien en esta casa.");
+  }
+  if (G.horror >= 10 && !G.flags.mostroHito10) {
+    G.flags.mostroHito10 = true;
+    br(); msgHorror("Las paredes parecen más cercanas que antes. El aire huele a tierra mojada y a algo dulce que no puedes identificar. Algo podrido, quizás.");
+  }
+  if (G.horror >= 12 && !G.flags.archivoCreado) {
+    crearArchivoExterno();
+  }
+  if (G.horror >= 14 && !G.flags.mostroHito14) {
+    G.flags.mostroHito14 = true;
+    br(); msgHorror("Tu visión se distorsiona por un instante. Las sombras se mueven cuando no las miras directamente. Estás seguro de que alguien te observa desde dentro de las paredes.");
+  }
+  if (G.horror >= 15 && !G.flags.notaInvAgregada) {
+    agregarNotaInventario();
+  }
+  if (G.horror >= 18 && !G.flags.mostroHito18) {
+    G.flags.mostroHito18 = true;
+    br(); msgHorror("Ya no distingues lo real de lo imaginado. El suelo vibra bajo tus pies como si la casa respirara. Escuchas tu propio nombre pronunciado al revés, una y otra vez, desde algún lugar debajo del suelo.");
+  }
+
+  checkActo();
+}
+
+function checkActo() {
+  if (G.horror >= 15 && G.acto < 4) {
+    G.acto = 4;
+    br(); msgActo("═══════ ACTO 4 — EL DESCENSO ═══════");
+    updateUI();
+  } else if (G.horror >= 14 && G.acto < 3) {
+    G.acto = 3;
+    br(); msgActo("════ ACTO 3 — LO QUE HAY DEBAJO ════");
+    updateUI();
+  } else if (G.horror >= 7 && G.acto < 2) {
+    G.acto = 2;
+    br(); msgActo("═══════ ACTO 2 — LAS GRIETAS ═══════");
+    updateUI();
+  }
+}
+
+function crearArchivoExterno() {
+  if (G.flags.archivoCreado) return;
+  G.flags.archivoCreado = true;
+  G.easter('archivo');
+  br();
+  msgSystem("[ Se ha detectado una brecha en la cuarta pared. ]");
+  br();
+  msg("Si pudieras mirar fuera del juego, encontrarías un archivo que dice:");
+  br();
+  msgHorror('"Sé que estás leyendo esto fuera del juego. Eso no te va a salvar. La puerta del sótano se abrió cuando abriste este archivo. Nos vemos adentro. — D.C."');
+}
+
+function agregarNotaInventario() {
+  if (G.flags.notaInvAgregada) return;
+  G.flags.notaInvAgregada = true;
+  G.easter('nota_inventario');
+  addInventory('nota_arrugada', 'Nota arrugada', 'Desdoblas la nota con manos temblorosas. La caligrafía es tuya, aunque no recuerdas haberla escrito. Dice: "Deja de jugar. Esto no es un juego. Nunca lo fue."');
+  br();
+  msgHorror("Sientes algo en tu bolsillo que no estaba antes. Es una nota arrugada.");
+}
+</script>
+<script>
+// ============================================================
+// INVENTORY SYSTEM
+// ============================================================
+function addInventory(id, name, desc) {
+  if (!G.inventory.find(i => i.id === id)) {
+    G.inventory.push({ id, name, desc });
+    updateUI();
+  }
+}
+function removeInventory(id) {
+  G.inventory = G.inventory.filter(i => i.id !== id);
+  updateUI();
+}
+function hasItem(id) { return G.inventory.some(i => i.id === id); }
+
+// ============================================================
+// ROOM SYSTEM
+// ============================================================
+const rooms = {};
+
+function defRoom(id, data) {
+  rooms[id] = {
+    id, alias: data.alias || id, floor: data.floor || 'pb',
+    describe: data.describe, // function(horror) => void
+    exits: data.exits || {}, // { direction: { to: roomId, locked, script } }
+    objects: data.objects || {}, // { id: { alias, look(horror), use, speak, take } }
+    onEnter: data.onEnter || null,
+  };
+}
+
+function moveToRoom(roomId) {
+  const room = rooms[roomId];
+  if (!room) { msg("No puedes ir ah\u00ed."); return; }
+  
+  // Floor transition message
+  const prevRoom = G.currentRoom ? rooms[G.currentRoom] : null;
+  const prevFloor = prevRoom ? prevRoom.floor : null;
+  G.currentRoom = roomId;
+  
+  if (prevFloor && prevFloor !== room.floor) {
+    const floorNames = { ext:'el exterior', pb:'la planta baja', p1:'el primer piso', p2:'el segundo piso', sot:'el s\u00f3tano' };
+    const dest = floorNames[room.floor] || room.floor;
+    br();
+    msg('<div style="text-align:center;color:#664433;letter-spacing:3px;margin:8px 0;">\u2014\u2014 ' + dest.charAt(0).toUpperCase() + dest.slice(1) + ' \u2014\u2014</div>');
+  }
+  
+  // Fade-in effect
+  const outWrap = document.getElementById('output-wrapper');
+  outWrap.classList.add('room-fade-in');
+  setTimeout(() => outWrap.classList.remove('room-fade-in'), 600);
+  
+  br();
+  room.describe(G.horror);
+  if (room.onEnter) room.onEnter();
+  updateUI();
+}
+
+function getCurrentRoom() { return rooms[G.currentRoom]; }
+
+// ============================================================
+// UI UPDATE
+// ============================================================
+function updateUI() {
+  const room = getCurrentRoom();
+  if (!room) return;
+
+  // Location
+  document.getElementById('location-name').textContent = room.alias;
+
+  // Status
+  document.getElementById('status-acto').textContent = G.acto;
+  document.getElementById('status-secrets').textContent = G.easterEggs;
+
+  // Horror textual indicator
+  const hSpan = document.getElementById('status-horror');
+  if (G.horror <= 3) { hSpan.textContent = 'Tranquilo'; hSpan.style.color = '#558855'; hSpan.classList.remove('blink-horror'); }
+  else if (G.horror <= 7) { hSpan.textContent = 'Inquieto'; hSpan.style.color = '#aaaa44'; hSpan.classList.remove('blink-horror'); }
+  else if (G.horror <= 13) { hSpan.textContent = 'Perturbado'; hSpan.style.color = '#cc8833'; hSpan.classList.remove('blink-horror'); }
+  else if (G.horror <= 17) { hSpan.textContent = 'Al borde'; hSpan.style.color = '#cc3333'; hSpan.classList.remove('blink-horror'); }
+  else { hSpan.textContent = '...'; hSpan.style.color = '#cc2222'; hSpan.classList.add('blink-horror'); }
+  
+  // Show turn counter only at horror 10+
+  const turnosDiv = document.getElementById('status-turnos');
+  if (turnosDiv) {
+    if (G.horror >= 10) {
+      turnosDiv.style.display = 'block';
+      document.getElementById('status-turnos-num').textContent = G.turnos;
+    } else {
+      turnosDiv.style.display = 'none';
+    }
+  }
+
+  // Exits
+  const exitsDiv = document.getElementById('exits-list');
+  exitsDiv.innerHTML = '';
+  const dirNames = { norte:'Norte', sur:'Sur', este:'Este', oeste:'Oeste',
+    noreste:'NE', noroeste:'NO', sureste:'SE', suroeste:'SO',
+    subir:'Subir', bajar:'Bajar', entrar:'Entrar', salir:'Salir' };
+  for (const [dir, exit] of Object.entries(room.exits)) {
+    const btn = document.createElement('button');
+    btn.className = 'exit-btn';
+    const dirLabel = dirNames[dir] || dir;
+    if (typeof exit === 'object' && exit.to && rooms[exit.to]) {
+      btn.textContent = dirLabel + ' \u2192 ' + rooms[exit.to].alias;
+    } else if (typeof exit === 'string' && rooms[exit]) {
+      btn.textContent = dirLabel + ' \u2192 ' + rooms[exit].alias;
+    } else {
+      btn.textContent = dirLabel + ' \u2192 ???';
+    }
+    btn.onclick = () => processCommand(`ir ${dir}`);
+    exitsDiv.appendChild(btn);
+  }
+
+  // Inventory
+  const invDiv = document.getElementById('inventory-list');
+  if (G.inventory.length === 0) {
+    invDiv.innerHTML = '<span class="empty-text">No llevas nada.</span>';
+  } else {
+    invDiv.innerHTML = G.inventory.map(item =>
+      `<div class="inv-item" onclick="processCommand('examinar ${item.name.toLowerCase()}')">${item.name}</div>`
+    ).join('');
+  }
+
+  // Room Objects Panel
+  const roomObjDiv = document.getElementById('room-objects-list');
+  if (roomObjDiv) {
+    const objEntries = room.objects ? Object.entries(room.objects) : [];
+    if (objEntries.length === 0) {
+      roomObjDiv.innerHTML = '<span class="empty-text">Nada notable.</span>';
+    } else {
+      roomObjDiv.innerHTML = objEntries.map(([key, obj]) => {
+        const name = obj.alias || key;
+        const isNPC = !!obj.speak;
+        const icon = isNPC ? '\u{1F464} ' : '';
+        const cls = isNPC ? 'room-obj-npc' : 'room-obj-item';
+        return '<div class="' + cls + '" onclick="processCommand(\'examinar ' + name.toLowerCase() + '\')">' + icon + name + '</div>';
+      }).join('');
+    }
+  }
+
+  // Contextual Quick Actions
+  const actDiv = document.getElementById('quick-actions');
+  actDiv.innerHTML = '';
+  const contextActions = [];
+  
+  // Always available
+  contextActions.push({ label: 'Mirar', cmd: 'mirar' });
+  contextActions.push({ label: 'Inventario', cmd: 'inventario' });
+  
+  // NPC actions
+  if (room.objects) {
+    for (const [key, obj] of Object.entries(room.objects)) {
+      if (obj.speak) {
+        contextActions.push({ label: 'Hablar con ' + (obj.alias || key), cmd: 'hablar con ' + (obj.alias || key).toLowerCase() });
+      }
+      if (obj.take) {
+        contextActions.push({ label: 'Tomar ' + (obj.alias || key), cmd: 'tomar ' + (obj.alias || key).toLowerCase() });
+      }
+    }
+  }
+  
+  // Room-specific actions
+  if (G.currentRoom === 'cocina') contextActions.push({ label: 'Comer estofado', cmd: 'comer estofado' });
+  if (G.currentRoom === 'tu_habitacion') contextActions.push({ label: 'Dormir', cmd: 'dormir' });
+  if (G.currentRoom === 'bano_visitas' || G.currentRoom === 'bano_primer_piso') contextActions.push({ label: 'Examinar espejo', cmd: 'examinar espejo' });
+  
+  // Generic fallbacks if not many specific
+  if (contextActions.length < 5) {
+    contextActions.push({ label: 'Oler', cmd: 'oler' });
+    contextActions.push({ label: 'Escuchar', cmd: 'escuchar' });
+  }
+  
+  contextActions.forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = 'action-btn';
+    btn.textContent = a.label;
+    btn.onclick = () => {
+      if (a.cmd.includes(' ') && !a.cmd.startsWith('hablar') && !a.cmd.startsWith('tomar') && !a.cmd.startsWith('comer') && !a.cmd.startsWith('examinar') && a.cmd !== 'mirar' && a.cmd !== 'inventario' && a.cmd !== 'oler' && a.cmd !== 'escuchar' && a.cmd !== 'dormir') {
+        const inp = document.getElementById('cmd-input');
+        inp.value = a.cmd + ' ';
+        inp.focus();
+      } else {
+        processCommand(a.cmd);
+        runTurnScripts();
+      }
+    };
+    actDiv.appendChild(btn);
+  });
+
+  // Map
+  updateMap();
+}
+
+// ============================================================
+// MAP SYSTEM
+// ============================================================
+const mapData = {
+  ext: { label: 'EXTERIOR', rooms: {
+    jardin_frontal:'Jardín', camino_pueblo:'Camino', plaza_pueblo:'Plaza',
+    calle_pueblo:'Calle', camino_regreso:'Regreso'
+  }, ascii: `  Regreso
+     |
+   Calle
+     |
+   Plaza
+     |
+  Camino
+     |
+  Jardín
+     |
+  CASA ▲`, note: '▲ Casa' },
+  pb: { label: 'PLANTA BAJA', rooms: {
+    recepcion:'Recepción', sala_estar:'Sala', comedor:'Comedor',
+    cocina:'Cocina', bano_visitas:'Baño', pasillo_servicio:'P.Servicio', lavadero:'Lavadero'
+  }, ascii: ` Sala      Lavadero
+  |           |
+  |       P.Servicio
+  |           |
+ Baño--Recepción--Comedor--Cocina`, note: '▲ 1er Piso  ▼ Exterior' },
+  p1: { label: 'PRIMER PISO', rooms: {
+    pasillo_primer_piso:'Pasillo', tu_habitacion:'TuHab', habitacion_martin:'Martín',
+    habitacion_lucia:'Lucía', habitacion_ramon:'Ramón', habitacion_sofia:'Sofía',
+    bano_primer_piso:'Baño1P'
+  }, ascii: `Baño1P TuHab  Sofía
+   \\     |    /
+  Pasillo 1er Piso
+   /     |    \\
+ Ramón Martín Lucía`, note: '▲ 2do Piso  ▼ Planta Baja' },
+  p2: { label: 'SEGUNDO PISO', rooms: {
+    escalera_segundo_piso:'Escalera', atico:'Ático', habitacion_carmen:'Carmen', cuarto_servicio:'C.Servicio'
+  }, ascii: ` Ático    Carmen
+    \\      /
+  Escalera 2P
+      |
+ C.Servicio`, note: '▼ 1er Piso' },
+  sot: { label: 'SÓTANO', rooms: {
+    escalera_sotano:'Esc.Sótano', bodega:'Bodega', cuarto_frio:'C.Frío', sala_oculta:'Sala Oculta'
+  }, ascii: `   Bodega
+      |
+ Esc.Sótano
+      |
+   C.Frío
+      |
+ Sala Oculta`, note: '▲ Lavadero' }
+};
+
+function updateMap() {
+  const room = getCurrentRoom();
+  if (!room) return;
+  const floor = room.floor;
+  const data = mapData[floor];
+  if (!data) return;
+
+  let ascii = data.ascii;
+  // Highlight current room
+  const roomLabel = data.rooms[G.currentRoom];
+  if (roomLabel) {
+    ascii = ascii.replace(roomLabel, `[${roomLabel}]`);
+  }
+
+  document.getElementById('map-display').textContent = ascii;
+  document.getElementById('map-floor').textContent = data.note || '';
+
+  // Floor label in panel header
+  const mapHeader = document.querySelector('#map-panel .panel-header');
+  mapHeader.textContent = `MAPA — ${data.label}`;
+}
+</script>
+<script>
+// ============================================================
+// COMMAND PARSER
+// ============================================================
+const cmdInput = document.getElementById('cmd-input');
+
+cmdInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const val = cmdInput.value.trim();
+    cmdInput.value = '';
+    if (!val) return;
+    if (G.gameOver) return;
+
+    // Show player input
+    const out = document.getElementById('output');
+    const cmdDiv = document.createElement('div');
+    cmdDiv.className = 'cmd-echo';
+    cmdDiv.textContent = '> ' + val;
+    out.appendChild(cmdDiv);
+
+    if (G.inputMode === 'getInput' && G.inputCallback) {
+      const cb = G.inputCallback;
+      G.inputCallback = null;
+      G.inputMode = 'command';
+      cb(val);
+      return;
+    }
+    if (G.inputMode === 'command') {
+      processCommand(val);
+      runTurnScripts();
+      // Turn separator
+      const sep = document.createElement('div');
+      sep.style.cssText = 'border-top:1px solid #1a1111;margin:12px 0;opacity:0.3;';
+      out.appendChild(sep);
+    }
+    out.scrollTop = out.scrollHeight;
+  }
+});
+
+function getInput(prompt, callback) {
+  if (prompt) msg(prompt);
+  G.inputMode = 'getInput';
+  G.inputCallback = callback;
+  cmdInput.focus();
+}
+
+function waitForKey(callback) {
+  G.inputMode = 'getInput';
+  G.inputCallback = () => { callback(); };
+  msg('<span style="color:#555;font-style:italic">[Presiona Enter para continuar]</span>');
+  cmdInput.focus();
+}
+
+// Normalize text for matching
+function norm(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+}
+
+function processCommand(raw) {
+  const input = norm(raw);
+  G.turnos++;
+
+  // Direction shortcuts
+  const dirMap = {
+    n:'norte', s:'sur', e:'este', o:'oeste', w:'oeste',
+    ne:'noreste', no:'noroeste', se:'sureste', so:'suroeste',
+    arriba:'subir', abajo:'bajar'
+  };
+
+  // Movement
+  if (input.startsWith('ir ') || dirMap[input] || ['norte','sur','este','oeste','noreste','noroeste','sureste','suroeste','subir','bajar','entrar','salir'].includes(input)) {
+    let dir = input.replace(/^ir (a |al |a la )?/, '');
+    if (dirMap[dir]) dir = dirMap[dir];
+    handleMove(dir);
+    runTurnScripts();
+    return;
+  }
+
+  // Examine / Look
+  if (input === 'mirar' || input === 'examinar' || input === 'look' || input === 'l') {
+    const room = getCurrentRoom();
+    if (room) room.describe(G.horror);
+    runTurnScripts();
+    return;
+  }
+  if (input.startsWith('examinar ') || input.startsWith('mirar ') || input.startsWith('ver ') || input.startsWith('leer ')) {
+    const target = input.replace(/^(examinar|mirar|ver|leer) (a |al |el |la |los |las )?/, '');
+    handleExamine(target);
+    runTurnScripts();
+    return;
+  }
+
+  // Talk
+  if (input.startsWith('hablar con ') || input.startsWith('hablar ')) {
+    const target = input.replace(/^hablar (con )?(a |al |el |la )?/, '');
+    handleSpeak(target);
+    runTurnScripts();
+    return;
+  }
+
+  // Take
+  if (input.startsWith('tomar ') || input.startsWith('coger ') || input.startsWith('recoger ')) {
+    const target = input.replace(/^(tomar|coger|recoger) (el |la |los |las )?/, '');
+    handleTake(target);
+    runTurnScripts();
+    return;
+  }
+
+  // Use
+  if (input.startsWith('usar ') || input.startsWith('empujar ') || input.startsWith('mover ')) {
+    const target = input.replace(/^(usar|empujar|mover) (el |la |los |las )?/, '');
+    handleUse(target);
+    runTurnScripts();
+    return;
+  }
+
+  // Open
+  if (input.startsWith('abrir ')) {
+    const target = input.replace(/^abrir (el |la |los |las )?/, '');
+    handleUse(target); // reuse use handler
+    runTurnScripts();
+    return;
+  }
+
+  // Inventory
+  if (input === 'inventario' || input === 'i' || input === 'inv') {
+    handleInventory();
+    return;
+  }
+
+  // Special commands
+  if (handleSpecialCommand(input)) { runTurnScripts(); return; }
+
+  // Unknown - immersive responses based on horror
+  if (G.horror < 5) {
+    msg("No est\u00e1s seguro de qu\u00e9 hacer. Intenta <b>examinar</b> algo, <b>hablar con</b> alguien, o <b>ir</b> en alguna direcci\u00f3n.");
+  } else if (G.horror < 11) {
+    const r = ["Tus manos dudan. Quiz\u00e1s deber\u00edas explorar m\u00e1s.", "No encuentras las palabras adecuadas. El cansancio te nubla.", "Algo te distrae. \u00bfQu\u00e9 era lo que quer\u00edas hacer?"];
+    msg(r[Math.floor(Math.random() * r.length)]);
+  } else if (G.horror < 16) {
+    const r = ["La casa no entiende esa orden. O no quiere entenderla.", "Tus pensamientos se enredan. Las palabras ya no significan lo mismo.", "El aire se espesa cuando intentas actuar. La casa resiste."];
+    msg(r[Math.floor(Math.random() * r.length)]);
+  } else {
+    const r = [
+      "No entiendo eso. Pero la casa s\u00ed.",
+      "Tus palabras se disuelven en el aire como humo.",
+      "La casa absorbe tu comando. No devuelve nada.",
+      "No es eso lo que la casa quiere que hagas.",
+      "\u00bfRealmente crees que t\u00fa decides aqu\u00ed?"
+    ];
+    msgHorror(r[Math.floor(Math.random() * r.length)]);
+  }
+  runTurnScripts();
+}
+
+// ============================================================
+// HANDLERS
+// ============================================================
+function handleMove(dir) {
+  const room = getCurrentRoom();
+  if (!room) return;
+  const exit = room.exits[dir];
+  if (!exit) {
+    if (G.horror < 10) msg("No puedes ir en esa dirección.");
+    else msg("No puedes ir en esa dirección. O quizás la dirección no quiere que vayas.");
+    return;
+  }
+  if (exit.locked) {
+    msg(exit.lockedMsg || "Está cerrado con llave.");
+    return;
+  }
+  if (exit.script) {
+    exit.script(); // custom movement script
+  } else {
+    moveToRoom(exit.to);
+  }
+}
+
+function handleExamine(target) {
+  // Check inventory first
+  const invItem = G.inventory.find(i => norm(i.name).includes(target) || norm(i.id).includes(target));
+  if (invItem) {
+    if (typeof invItem.desc === 'function') invItem.desc();
+    else msg(invItem.desc);
+    return;
+  }
+  // Check room objects
+  const room = getCurrentRoom();
+  if (!room) return;
+  for (const [id, obj] of Object.entries(room.objects)) {
+    const aliases = [norm(obj.alias || id), ...(obj.alt || []).map(norm)];
+    if (aliases.some(a => a.includes(target) || target.includes(a))) {
+      if (obj.look) {
+        if (typeof obj.look === 'function') obj.look(G.horror);
+        else msg(obj.look);
+      } else {
+        msg("No ves nada especial.");
+      }
+      return;
+    }
+  }
+  msg("No puedes ver eso aquí.");
+}
+
+function handleSpeak(target) {
+  const room = getCurrentRoom();
+  if (!room) return;
+  for (const [id, obj] of Object.entries(room.objects)) {
+    const aliases = [norm(obj.alias || id), ...(obj.alt || []).map(norm)];
+    if (aliases.some(a => a.includes(target) || target.includes(a))) {
+      if (obj.speak) {
+        if (typeof obj.speak === 'function') obj.speak(G.horror);
+        else msg(obj.speak);
+      } else {
+        msg("No responde.");
+      }
+      return;
+    }
+  }
+  msg("No hay nadie con ese nombre aquí.");
+}
+
+function handleTake(target) {
+  const room = getCurrentRoom();
+  if (!room) return;
+  for (const [id, obj] of Object.entries(room.objects)) {
+    const aliases = [norm(obj.alias || id), ...(obj.alt || []).map(norm)];
+    if (aliases.some(a => a.includes(target) || target.includes(a))) {
+      if (obj.take) {
+        if (typeof obj.take === 'function') obj.take();
+        else msg(obj.take);
+      } else {
+        msg("No puedes tomar eso.");
+      }
+      return;
+    }
+  }
+  msg("No ves eso aquí.");
+}
+
+function handleUse(target) {
+  const room = getCurrentRoom();
+  if (!room) return;
+  for (const [id, obj] of Object.entries(room.objects)) {
+    const aliases = [norm(obj.alias || id), ...(obj.alt || []).map(norm)];
+    if (aliases.some(a => a.includes(target) || target.includes(a))) {
+      if (obj.use) {
+        if (typeof obj.use === 'function') obj.use();
+        else msg(obj.use);
+      } else {
+        msg("No puedes usar eso.");
+      }
+      return;
+    }
+  }
+  // Check inventory
+  const invItem = G.inventory.find(i => norm(i.name).includes(target) || norm(i.id).includes(target));
+  if (invItem && invItem.use) { invItem.use(); return; }
+  msg("No puedes usar eso.");
+}
+
+function handleInventory() {
+  if (G.inventory.length === 0) {
+    msg("No llevas nada.");
+  } else {
+    msg("Llevas:");
+    G.inventory.forEach(i => msg(`  — ${i.name}`));
+  }
+}
+</script>
+<script>
+// ============================================================
+// SPECIAL COMMANDS
+// ============================================================
+function handleSpecialCommand(input) {
+  // quien soy
+  if (input === 'quien soy' || input === 'quien soy?') {
+    G.easter('quien_soy');
+    if (G.horror <= 5) msg(`Eres ${G.nombreJugador}. Un viajero cansado que busca refugio en Nicanor Molinare. O al menos eso crees.`);
+    else if (G.horror <= 10) msg(`Eres ${G.nombreJugador}. ¿Verdad? Tu nombre suena extraño cuando lo piensas demasiado. Como una palabra repetida hasta perder significado.`);
+    else if (G.horror <= 15) msg(`¿Quién eres? La pregunta resuena en tu cabeza como un eco en un pozo vacío. El espejo más cercano no refleja tu cara — refleja a alguien que se te parece, pero con los ojos equivocados.`);
+    else msg(`Ya no sabes. El nombre '${G.nombreJugador}' es solo un sonido. Las letras de tu fecha de nacimiento — ${G.fechaNacimiento} — podrían ser las de cualquiera. O las de nadie. ¿Alguna vez fuiste real?`);
+    return true;
+  }
+
+  // ayuda
+  if (input === 'ayuda' || input === 'help') {
+    G.vecesAyuda++;
+    if (G.vecesAyuda <= 3) {
+      msgSystem("═══ AYUDA — Nicanor Molinare ═══"); br();
+      msg("Comandos útiles:"); msg("  — <b>EXAMINAR / MIRAR</b>: Observa tu entorno u objetos.");
+      msg("  — <b>HABLAR CON</b> [persona]: Intenta hablar con alguien.");
+      msg("  — <b>TOMAR</b> [objeto]: Recoge un objeto.");
+      msg("  — <b>USAR</b> [objeto]: Usa un objeto de tu inventario.");
+      msg("  — <b>IR</b> [dirección]: Muévete (norte, sur, este, oeste, arriba, abajo).");
+      msg("  — <b>INVENTARIO</b>: Revisa lo que llevas.");
+      msg("  — <b>QUIEN SOY</b>: Recuerda quién eres. O intenta.");
+      br(); msg("Consejo: Examina todo. Habla con todos. No confíes en nada.");
+    } else {
+      G.easter('ayuda'); msgHorror("Nadie puede oírte. La última persona que pidió ayuda sigue en el cuarto frío.");
+    }
+    return true;
+  }
+
+  // secretos/progreso
+  if (input === 'secretos' || input === 'progreso' || input === 'easter eggs') {
+    msgSystem("══════ PROGRESO ══════"); br();
+    msg(`  Secretos descubiertos: ${G.easterEggs} / 25`);
+    msg(`  Nivel de horror: ${G.horror} / 20`);
+    msg(`  Acto actual: ${G.acto}`);
+    msg(`  Turnos: ${G.turnos}`);
+    return true;
+  }
+
+  // comer estofado
+  if (input.includes('comer') || input === 'probar estofado' || input === 'estofado') {
+    handleComerEstofado(); return true;
+  }
+
+  // rezar
+  if (input === 'rezar' || input === 'orar') {
+    G.easter('rezar');
+    if (G.horror < 7) msg("Cierras los ojos y rezas en silencio. No pasa nada. Pero sientes una breve calma.");
+    else if (G.horror < 14) msg("Cierras los ojos y rezas. Las palabras se sienten huecas, como si el techo las absorbiera antes de que lleguen a ningún lado.");
+    else if (G.horror < 18) { msg("Cierras los ojos y rezas. Una voz responde. No es la voz que esperabas. Dice: 'Aquí no llega nadie. Aquí solo estoy yo.' La voz suena exactamente como la tuya."); incrementHorror(1); }
+    else { msg("Rezas. La respuesta es risa. Tu propia risa, pero distorsionada, viniendo de las paredes, del suelo, del techo. Suena como si cien versiones de ti se estuvieran riendo a la vez."); incrementHorror(1); }
+    return true;
+  }
+
+  // gritar
+  if (input === 'gritar' || input === 'grito' || input.includes('aaaa')) {
+    G.easter('gritar');
+    if (G.horror < 7) msg("Gritas. Tu voz rebota por los pasillos. Carmen se asoma desde la cocina con expresión preocupada. '¿Estás bien, querido?'");
+    else if (G.horror < 14) msg("Gritas. Tu voz rebota por los pasillos. Pero el eco vuelve con un segundo de retraso. Y el eco suena diferente. Más grave. Más largo. Como si algo gritara contigo.");
+    else if (G.horror < 18) msg("Gritas. Tu voz no produce eco. La casa la absorbe como una esponja. El silencio que queda después es peor que el grito. Es un silencio hambriento.");
+    else msg("Gritas. Pero tu boca no se abre. El grito viene de dentro de las paredes. Es tu voz, gritando tu nombre, una y otra vez. Luego se detiene. Y una voz tranquila dice: 'Ya terminaste? Bien. Ahora sigue jugando.'");
+    return true;
+  }
+
+  // dormir
+  if (input === 'dormir' || input === 'descansar' || input === 'cerrar ojos') {
+    if (G.currentRoom === 'tu_habitacion') {
+      if (G.horror < 7) { msg("Te acuestas en la cama. Te quedas dormido casi al instante."); br(); msg("Sueñas con un pasillo largo, lleno de puertas cerradas. Al final hay un espejo. Tu reflejo no está. Solo hay oscuridad."); br(); msg("Despiertas. No sabes cuánto tiempo ha pasado. La luz es exactamente la misma."); }
+      else if (G.horror < 14) { msg("Cierras los ojos. El sueño llega demasiado rápido, como si alguien te empujara hacia abajo."); br(); msg("Sueñas que estás en la recepción. Carmen dice: 'Bienvenido.' Pero su boca no se mueve. El sonido viene del techo."); br(); msg("Despiertas empapado en sudor frío. Hay marcas de dedos en tu muñeca. No son tuyas."); incrementHorror(1); }
+      else { msg("No puedes dormir. Cada vez que cierras los ojos, ves tu propia cara mirándote desde el otro lado de tus párpados."); br(); msgHorror("'No duermas,' susurra una voz. 'Si duermes, yo despierto.'"); incrementHorror(1); }
+    } else { msg("No es un buen lugar para dormir. Algo te dice que bajar la guardia aquí sería un error."); }
+    return true;
+  }
+
+  // escuchar
+  if (input === 'escuchar' || input === 'oir' || input.includes('que se oye')) {
+    if (G.horror < 5) msg("Silencio. Un silencio denso, roto únicamente por el lejano crepitar de la chimenea y el burbujeo del estofado. Es un silencio confortable. De momento.");
+    else if (G.horror < 10) msg("Debajo del silencio hay algo. Un zumbido grave y constante, como algo grande que respira muy, muy lentamente.");
+    else if (G.horror < 15) { msg("La casa no está en silencio. Nunca lo estuvo:"); br(); msg("  — Las paredes crujen al ritmo de una respiración."); msg("  — Bajo el suelo, algo se arrastra con un sonido húmedo."); msg("  — Desde el ático, un golpeteo rítmico: toc, toc, toc."); msg("  — Y debajo de todo, tu nombre. Pronunciado al revés."); }
+    else { msg("Escuchas todo. Cada tablón gime. Cada piedra del sótano susurra nombres. Y en el centro de todo, un latido. Constante. Hambriento."); br(); msgHorror("Es el corazón de la casa. Y late al mismo ritmo que el tuyo."); }
+    return true;
+  }
+
+  // oler
+  if (input === 'oler' || input === 'olfatear') {
+    if (G.currentRoom === 'cocina') { msg(G.horror < 7 ? "El aroma del estofado lo impregna todo: tomillo, romero, cebolla caramelizada, y algo más que no puedes identificar." : "Debajo del aroma del estofado hay otro olor. Dulce. Metálico. Como la sangre mezclada con miel."); }
+    else if (G.currentRoom === 'jardin_frontal') { msg(G.horror < 10 ? "Flores. Tierra húmeda. Hierba cortada. Olores demasiado perfectos." : "Debajo del perfume de las flores hay un olor a descomposición. Algo grande se pudre bajo la tierra."); }
+    else if (['escalera_sotano','bodega','cuarto_frio','sala_oculta'].includes(G.currentRoom)) { msg("Tierra mojada. Piedra antigua. Moho. Y algo dulce que viene de más abajo, de los cimientos mismos de la casa."); }
+    else { msg(G.horror < 7 ? "Madera vieja, cera de abeja, polvo. Los olores reconfortantes de una casa antigua." : "El aire huele a humedad y a algo dulce que se ha ido agriando con el tiempo."); }
+    return true;
+  }
+
+  // pensar
+  if (input === 'pensar' || input === 'reflexionar' || input === 'que hago') {
+    if (G.horror < 5) msg("Piensas en tu situación. Eres un viajero en una casa de huéspedes. Todo está en orden. ¿Verdad?");
+    else if (G.horror < 10) msg("Algo no encaja. Las marcas de Ramón. Los dibujos de Sofía. El estofado eterno. Cada pieza por separado es extraña. Juntas, forman un patrón que no quieres ver.");
+    else if (G.horror < 15) msg("Sabes lo que está pasando. Esta casa no es una casa. Es una trampa hermosa, acogedora, perfumada con estofado y lavanda, pero una trampa.");
+    else msg("Tus pensamientos ya no son solo tuyos. Cada idea tiene un eco, una sombra. La casa está dentro de tu cabeza ahora. O tú estás dentro de la suya.");
+    return true;
+  }
+
+  // mirar manos
+  if (input.includes('mis manos') || input.includes('mirar manos')) {
+    if (G.horror < 7) msg("Tus manos. Diez dedos. Son tus manos. Normales. Familiares.");
+    else if (G.horror < 14) msg("Las líneas de la palma parecen más profundas. Tus uñas tienen un tono azulado. Y en la punta de los dedos hay un polvo gris.");
+    else { msg("Las líneas de la palma se mueven lentamente, reconfigurándose. Por un instante, forman letras. Deletrean tu nombre. Pero al revés."); G.easter('manos'); }
+    return true;
+  }
+
+  // mirar ventana
+  if (input.includes('ventana') || input === 'mirar afuera') {
+    if (['tu_habitacion','habitacion_martin','habitacion_lucia','habitacion_ramon','habitacion_sofia','bano_primer_piso'].includes(G.currentRoom)) {
+      if (G.horror < 7) msg("Miras por la ventana. El jardín se extiende abajo, bañado por una luz dorada. Todo parece tranquilo. Casi demasiado normal.");
+      else if (G.horror < 14) { msg("El cielo tiene un tono verdoso. En el camino de tierra, muy lejos, hay una figura. Está quieta. Te está mirando."); br(); msg("Parpadeas. Ya no está. Pero ahora hay dos figuras más cerca."); }
+      else { msg("La ventana ya no muestra el exterior. Muestra otra habitación idéntica pero invertida. Y en ella hay alguien sentado de espaldas."); br(); msg("Tiene tu misma ropa. Tu mismo pelo."); br(); msgHorror("Lentamente, empieza a girar la cabeza."); br(); msg("Apartas la vista antes de ver su cara."); incrementHorror(1); }
+    } else { msg("No hay ventanas aquí."); }
+    return true;
+  }
+
+  // cantar
+  if (input === 'cantar' || input === 'tararear' || input === 'silbar') {
+    if (G.horror < 7) msg("Tarareas una melodía. Carmen asoma la cabeza y sonríe. 'Qué bonito. Hace tiempo que nadie cantaba aquí.'");
+    else if (G.horror < 14) { msg("Empiezas a tararear pero no es la canción que querías. Es una nana que no conoces pero que tus labios recuerdan."); br(); msg("Desde la habitación de Sofía, llega el eco de la misma melodía. Nota por nota."); }
+    else { msg("Abres la boca para cantar. Lo que sale es un coro de docenas de voces, todas cantando la misma nota discordante. Viene de dentro de ti."); incrementHorror(1); }
+    return true;
+  }
+
+  // llorar
+  if (input === 'llorar' || input === 'sollozar') {
+    if (G.horror < 7) msg("Sientes un nudo en la garganta pero las lágrimas no llegan. No hay razón para llorar. Aún.");
+    else if (G.horror < 14) msg("Lloras. Las lágrimas caen al suelo y la madera las absorbe al instante, como si tuviera sed.");
+    else { msg("Lloras. Pero las lágrimas son oscuras. Del color de la tinta del libro de registro. Caen al suelo y forman letras."); br(); msgHorror("Las letras dicen: 'ESTOY AQUÍ ABAJO. VEN.'"); incrementHorror(1); }
+    return true;
+  }
+
+  // nicanor molinare
+  if (input === 'nicanor molinare' || input === 'nicanor' || input === 'molinare') {
+    G.easter('nicanor');
+    if (G.horror < 7) msg("Nicanor Molinare. El nombre del hotel. Suena elegante. ¿Verdad?");
+    else if (G.horror < 14) msg("¿Quién fue Nicanor Molinare? No es el nombre de la casa. Es el nombre de alguien. El primer huésped. O el primer prisionero.");
+    else if (G.horror < 18) { msg("Nicanor Molinare fue una persona. Un hombre que construyó esta casa en 1826 como refugio para viajeros. Murió aquí. Solo. Loco. Hablando con las paredes. Las paredes le respondían."); br(); msg("Dicen que su cuerpo nunca fue encontrado. Que la casa lo absorbió. Que cada pared es su carne. Que cada puerta es su boca. Y que cada huésped es una comida."); }
+    else { msgHorror("Nicanor Molinare eres tú. Siempre fuiste tú. El primer nombre en el registro. El último. La casa no te atrapó — tú la creaste. Porque tienes miedo de la soledad."); incrementHorror(2); }
+    return true;
+  }
+
+  // contar turnos
+  if (input.includes('turnos') || input.includes('cuanto llevo') || input.includes('cuanto tiempo')) {
+    msg(`Llevas ${G.turnos} turnos en Nicanor Molinare.`);
+    if (G.turnos < 50) msg("Recién llegas. Aún hay esperanza.");
+    else if (G.turnos < 150) msg("Empiezas a perder la noción del tiempo.");
+    else if (G.turnos < 300) msg("Demasiado tiempo. Carmen sonríe cada vez que te ve, como si supiera que ya no te irás.");
+    else { msg("Has perdido la cuenta. Los números ya no significan nada. Exactamente como las marcas de Ramón."); G.easter('turnos_cmd'); }
+    return true;
+  }
+
+  // sentarse
+  if (input === 'sentarse' || input === 'sentarme') {
+    if (G.currentRoom === 'sala_estar') {
+      if (G.horror < 10) msg("Te sientas en uno de los sofás. Por un instante, crees sentir que alguien se sienta a tu lado. El sofá se hunde a tu derecha. No hay nadie.");
+      else { msg("El sofá te abraza. Literalmente. La tela se cierra sobre tus brazos. Te levantas de un salto."); incrementHorror(1); }
+    } else if (G.currentRoom === 'sala_oculta') {
+      msg("Te sientas en la silla del centro. Sientes un latido a través del asiento. Es el corazón de la casa."); br(); msg("Por un instante, ves la casa entera desde arriba. Cada habitación. Cada persona. Y todos te ven a ti.");
+    } else { msg("Te sientas un momento en el suelo. El frío de la piedra se filtra a través de tu ropa."); }
+    return true;
+  }
+
+  // firmar libro
+  if (input.includes('firmar') || input === 'escribir en libro' || input === 'escribir en el libro') {
+    handleFirmarLibro(); return true;
+  }
+
+  // hablar con amigo imaginario
+  if (input.includes('amigo imaginario') || (input.includes('amigo') && input.includes('hablar'))) {
+    handleAmigoImaginario(); return true;
+  }
+
+  // mirar agua
+  if (input.includes('mirar agua') || input.includes('mirar el agua') || input.includes('ver agua')) {
+    handleMirarAgua(); return true;
+  }
+
+  // examinar espejo (special)
+  if (input.includes('espejo') && (input.includes('examinar') || input.includes('mirar'))) {
+    handleExaminarEspejo(); return true;
+  }
+
+  // comer estofado
+  if (input.includes('estofado') || (input.includes('comer') && G.currentRoom === 'cocina')) {
+    handleComerEstofado(); return true;
+  }
+
+  // beber frasco
+  if (input.includes('beber frasco') || input.includes('tomar frasco') || input.includes('usar frasco')) {
+    handleBeberFrasco(); return true;
+  }
+
+  // examinar frascos
+  if (input.includes('frascos') || input.includes('despensa')) {
+    handleExaminarFrascos(); return true;
+  }
+
+  // abrir sotano / codigo
+  if (input.includes('trampilla') || input.includes('candado') || input.includes('codigo') || input.includes('sotano')) {
+    if (G.currentRoom === 'lavadero') { handleAbrirSotano(); return true; }
+  }
+
+  // salvar sofia
+  if (input.includes('salvar') && input.includes('sofia')) {
+    if (G.flags.habloSofiaCapa3) {
+      msgDialog(`"¿Salvarme?" Sofía te mira. "Nadie puede salvarme. Pero si quieres intentarlo... cuando firmes el libro, escribe mi nombre."`);
+      G.flags.salvoSofia = true;
+    } else { msg("No estás seguro de cómo o a quién salvar."); }
+    return true;
+  }
+
+  // usar llave atico
+  if (input.includes('llave') && input.includes('atico')) {
+    if (G.flags.tieneLlaveAtico && G.currentRoom === 'escalera_segundo_piso') {
+      msg("Usas la llave oxidada en la cerradura del ático. Gira con dificultad. La puerta se abre."); playSound('chirrido');
+      rooms.escalera_segundo_piso.exits.subir.locked = false;
+    } else if (!G.flags.tieneLlaveAtico) msg("No tienes la llave del ático.");
+    else msg("No hay ninguna puerta que abrir aquí con esa llave.");
+    return true;
+  }
+
+  // escribir verdad (final secreto)
+  if (input === 'verdad' || input === 'escribir verdad') {
+    if (G.currentRoom === 'sala_oculta' && G.easterEggs >= 15) {
+      msg("Escribes 'VERDAD' en el libro. La tinta brilla con todos los colores."); br();
+      finalVerdad();
+    } else if (G.currentRoom === 'sala_oculta') {
+      msg(`Escribes 'VERDAD' pero la tinta se desvanece. No has descubierto suficientes secretos. (${G.easterEggs}/15)`);
+    }
+    return true;
+  }
+
+  return false; // not a special command
+}
+
+// ============================================================
+// SPECIAL INTERACTIONS
+// ============================================================
+function handleComerEstofado() {
+  if (G.currentRoom !== 'cocina') { msg("No hay nada que comer aquí."); return; }
+  G.comioEstofado++;
+  if (G.comioEstofado === 1) { msg("Tomas un cucharón del estofado. Está delicioso — reconfortante, cálido. Carmen sonríe."); br(); msgDialog('"Come, come. Tienes que recuperar fuerzas."'); }
+  else if (G.comioEstofado === 2) { msg("Repites. El sabor es más intenso, casi adictivo. Hay un regusto metálico. Carmen no deja de mirarte."); br(); msgDialog('"Bien, bien. Comes como los buenos huéspedes."'); }
+  else if (G.comioEstofado === 3) { msg("El estofado ya no sabe a estofado. Sabe a recuerdos. A tu infancia. A tu primer amor. A lugares que no has visitado."); br(); msgHorror("Es imposible. Pero sigues comiendo. No puedes parar."); incrementHorror(1); }
+  else if (G.comioEstofado === 4) { msgHorror("¿Qué estás comiendo? El estofado se mueve en la cuchara. Algo dentro burbujea y se contrae. ¿Acabas de ver un dedo? No. No puede ser. ¿Verdad?"); incrementHorror(2); }
+  else if (G.comioEstofado >= 5) { G.easter('estofado5'); msgHorror(`"Ya eres parte de la receta, ${G.nombreJugador}," dice Carmen. Y por primera vez no sonríe.`); incrementHorror(2); }
+}
+
+function handleAmigoImaginario() {
+  if (G.currentRoom !== 'habitacion_sofia') { msg("No hay ningún amigo imaginario aquí."); return; }
+  msg("Te arrodillas junto a la esquina de la habitación donde Sofía dice que vive su amigo."); br();
+  msgDialog('"Hola," dices, sintiéndote ridículo.'); br();
+  msg("Silencio. Luego, un susurro. No viene de la pared. Viene de debajo del suelo."); br();
+  msgDialog(`"Hola, ${G.nombreJugador}. Te he estado esperando."`); br();
+  msgDialog('"Sofía es buena compañía, pero ella no puede oírme como tú. Tú puedes porque ya tienes un pie aquí abajo."'); br();
+  msgDialog('"¿Quieres saber un secreto? El código del sótano es el año en que Carmen dejó de envejecer. Pregúntale a Martín. Él lo registró todo."'); br();
+  msgDialog('"Nos vemos pronto. Más pronto de lo que crees."'); br();
+  msg("El susurro se apaga. El silencio que queda es peor que cualquier sonido.");
+  G.flags.habloAmigoImaginario = true;
+  G.easter('amigo');
+  incrementHorror(2);
+}
+
+function handleMirarAgua() {
+  if (G.currentRoom !== 'bano_primer_piso') { msg("No hay agua aquí que puedas mirar."); return; }
+  if (G.horror < 9) { msg("El agua del lavabo está sucia y estancada."); return; }
+  msg("Te inclinas sobre el lavabo y miras el agua estancada."); br();
+  msg("Tu reflejo te devuelve la mirada. Pero algo está mal."); br();
+  msgHorror("Tu reflejo sonríe. Tú no estás sonriendo."); br();
+  msg("Lentamente, tu reflejo comienza a hundirse. La cara sonriente se sumerge centímetro a centímetro. Lo último que ves son los ojos — abiertos, fijos, sin parpadear."); br();
+  msg("El agua queda quieta. Tu reflejo ya no está."); br();
+  msg("Cuando te miras las manos, están mojadas. No recuerdas haberlas metido en el agua.");
+  G.easter('agua');
+  incrementHorror(1);
+}
+
+function handleExaminarEspejo() {
+  if (G.currentRoom === 'bano_visitas') {
+    G.vecesEspejoVisitas++;
+    if (G.vecesEspejoVisitas < 5) {
+      msg(G.horror < 7 ? "Tu reflejo te devuelve la mirada. Te ves normal. ¿Verdad?" : "Tu reflejo se mueve con un ligero retraso. Es difícil saber quién imita a quién.");
+    } else {
+      msgHorror("Tu reflejo sonríe. Tú no estás sonriendo."); br();
+      msgHorror("Retrocedes. Tu reflejo no retrocede. Se queda ahí, sonriendo, con tu cara pero no tu alma.");
+      G.easter('espejo_visitas'); G.vecesEspejoVisitas = 0;
+    }
+  } else if (G.currentRoom === 'bano_primer_piso') {
+    G.vecesEspejoBano++;
+    if (G.vecesEspejoBano < 5) {
+      if (G.horror < 7) msg("Tu reflejo te devuelve la mirada. Te ves cansado.");
+      else if (G.horror < 14) msg("Tu reflejo se mueve con un segundo de retraso. Parpadeas y tu reflejo no parpadea.");
+      else msg("El espejo muestra una habitación vacía. Tú no estás en el reflejo.");
+    } else {
+      msgHorror("Tu reflejo sonríe y golpea el cristal desde dentro. Una vez. Dos veces. El cristal no se rompe.");
+      G.easter('espejo_bano'); G.vecesEspejoBano = 0;
+    }
+  } else if (G.currentRoom === 'sala_oculta') {
+    msg("Te colocas frente al espejo. No ves tu reflejo. Solo un negro absoluto, infinitamente profundo."); br();
+    if (G.horror >= 18) { msgHorror("En esa profundidad, algo se mueve. Un rostro más viejo que cualquier rostro humano. Su boca tiene una sonrisa idéntica a la de Carmen."); br(); msg("Luego desaparece. Pero ahora sabes qué hay al otro lado."); }
+    else msg("Sientes su mirada. Antigua. Paciente. Hambrienta.");
+  } else { msg("No hay ningún espejo aquí."); }
+  return true;
+}
+
+function handleExaminarFrascos() {
+  if (G.currentRoom !== 'cocina') { msg("No hay frascos aquí."); return; }
+  if (G.horror >= 7) {
+    msg("Los frascos de la despensa tienen nombres de personas: 'Esencia de Elena', 'Extracto de Jorge', 'Destilado de Alejandro'...");
+    if (G.horror >= 10 || G.flags.frascoDisponible) {
+      G.flags.frascoDisponible = true; br();
+      msg(`Y en la parte de atrás: un frasco con tu nombre. '${G.nombreJugador}'. El líquido brilla.`);
+    }
+    if (!G.flags.digito3) { G.flags.digito3 = true; br(); msgEaster("(Tercer dígito del código descubierto: 4)"); }
+  } else { msg("La despensa tiene frascos de especias y conservas. Todo normal. Completamente normal."); }
+}
+
+function handleBeberFrasco() {
+  if (G.flags.frascoDisponible && !G.flags.bebioFrasco) {
+    msg("Destapas el frasco con tu nombre. Huele a ti — a tu champú, a tu ropa, a tu piel."); br();
+    msg("Lo bebes. El efecto es inmediato. Una calidez sobrehumana recorre tus venas. Tus músculos se tensan con una energía que no te pertenece."); br();
+    msgHorror("...más hambriento.");
+    G.flags.bebioFrasco = true; incrementHorror(1);
+  } else if (G.flags.bebioFrasco) { msg("Ya bebiste el contenido del frasco."); }
+  else { msg("No tienes ningún frasco para beber."); }
+}
+
+function handleAbrirSotano() {
+  if (G.flags.abrioSotano) { msg("La trampilla ya está abierta."); return; }
+  msg("La trampilla tiene un candado de combinación con cuatro dígitos."); br();
+  getInput("Ingresa el código:", (code) => {
+    if (code === '1947') {
+      msg("Los números giran con un click: 1... 9... 4... 7."); br();
+      msg("El candado se abre. Una bocanada de aire frío y antiguo sube desde la oscuridad.");
+      G.flags.abrioSotano = true;
+      rooms.lavadero.exits.bajar = { to: 'escalera_sotano' };
+      playSound('chirrido'); incrementHorror(3); updateUI();
+    } else {
+      msg("Los números no encajan. El candado permanece cerrado."); br();
+      msg("Desde abajo, juras escuchar un suspiro de decepción.");
+    }
+  });
+}
+
+function handleFirmarLibro() {
+  if (G.currentRoom !== 'sala_oculta') { msg("No hay ningún libro aquí donde escribir."); return; }
+  msg("El libro de registro está abierto. Una pluma antigua descansa junto a él."); br();
+  getInput("¿Qué escribes en el libro?", (text) => {
+    const t = norm(text);
+    if (t === 'libertad') { msg("Escribes 'LIBERTAD'. La tinta se hunde en el papel y toda la casa tiembla."); br(); finalEscape(); }
+    else if (t === norm(G.nombreJugador)) { msg("Escribes tu propio nombre. La tinta se extiende como raíces. Algo dentro de ti se calma, se rinde."); br(); finalAceptacion(); }
+    else if (t === 'ella' || t === 'sofia') {
+      if (G.flags.salvoSofia) { msg("Escribes su nombre. La tinta brilla con una luz imposible."); br(); finalSacrificio(); }
+      else { msg(`Escribes '${text}'. La tinta se seca inmediatamente, como si la página la rechazara.`); }
+    }
+    else if (t === 'verdad' && G.easterEggs >= 15) { msg("Escribes 'VERDAD'. La tinta brilla con todos los colores."); br(); finalVerdad(); }
+    else { msg(`Escribes '${text}'. Las letras se desvanecen, absorbidas por el papel. La página queda en blanco.`); }
+  });
+}
+
+
+function applyHorrorEffects(level) {
+  const overlay = document.getElementById('horror-overlay');
+  const vignette = document.getElementById('vignette');
+  if (!overlay || !vignette) return;
+  
+  if (level === 0) {
+    overlay.style.opacity = '0';
+    vignette.style.opacity = '0';
+    document.body.style.backgroundColor = '#0a0a0a';
+    document.body.classList.remove('shake', 'horror-pulse');
+    return;
+  }
+  
+  const intensity = Math.min(level / 20, 1);
+  overlay.style.opacity = (intensity * 0.3).toString();
+  vignette.style.opacity = (intensity * 0.6).toString();
+  
+  // Darken/redden background based on horror
+  const r = Math.floor(10 + intensity * 15);
+  const g = Math.floor(10 - intensity * 8);
+  const b = Math.floor(10 - intensity * 8);
+  document.body.style.backgroundColor = 'rgb(' + r + ',' + g + ',' + b + ')';
+  
+  if (level >= 14) {
+    document.body.classList.add('horror-pulse');
+  }
+}
+
+// ==================== TURN SCRIPTS ====================
+function runTurnScripts() {
+  G.turnos++;
+  
+  // Random ghost notes (every ~15 turns)
+  if (G.turnos % 15 === 0 && G.horror >= 5) {
+    const notas = [
+      'Un papel cae del techo. Dice: "No confies en ella."',
+      'Encuentras una nota en tu bolsillo que no estaba antes: "El codigo es el ano."',
+      'Algo cruje en las paredes. Suena como alguien escribiendo.',
+      'Una hoja se desliza bajo la puerta. Tiene un dibujo: tu cara, con los ojos tachados.',
+      'Encuentras escrito en tu muneca, con tinta invisible que ahora es visible: "CORRE."',
+      'Un susurro recorre el pasillo: tu nombre, dicho al reves.',
+      'Las tablas del suelo forman un mensaje por un instante: "ABAJO."'
+    ];
+    br(); msgHorror(notas[Math.floor(Math.random()*notas.length)]);
+  }
+  
+  // Whispers (every ~20 turns at horror >= 8)
+  if (G.turnos % 20 === 0 && G.horror >= 8) {
+    const susurros = [
+      'Un susurro: "...quedate..."',
+      'Algo respira detras de ti. Te giras. Nada.',
+      'Por un instante, ves una sombra que no es tuya en el suelo.',
+      'La temperatura baja varios grados de golpe. Luego vuelve a la normalidad.',
+      'Escuchas pasos arriba. Pero estas en el piso mas alto.',
+      'Tu nombre, pronunciado por una voz que se parece a la tuya pero no es la tuya.',
+      'Un golpe seco en la pared. Tres golpes. Pausa. Tres golpes mas.'
+    ];
+    br(); msgHorror(susurros[Math.floor(Math.random()*susurros.length)]);
+    playSound('susurro');
+  }
+  
+  // False game over (at turn 100, once)
+  if (G.turnos === 100 && !G.flags.falseGameOver) {
+    G.flags.falseGameOver = true;
+    br();
+    msg('<div style="color:#ff0000;font-size:24px;text-align:center;margin:20px 0;">GAME OVER</div>');
+    msg('<div style="color:#cc0000;text-align:center;">La casa te ha consumido. No hay escapatoria.</div>');
+    msg('<div style="color:#cc0000;text-align:center;">Gracias por jugar Nicanor Molinare.</div>');
+    setTimeout(() => {
+      br();
+      msg('<div style="color:#00ff00;text-align:center;font-style:italic;">...es broma. Aun no hemos terminado contigo.</div>');
+      br();
+      msg('<div style="color:#888;">La pantalla vuelve a la normalidad. El juego continua. Por supuesto que continua. Aqui nada termina de verdad.</div>');
+      if (!G.easters.falseGameOver) { G.easters.falseGameOver = true; G.easterEggs++; }
+      incrementHorror(2);
+    }, 4000);
+  }
+  
+  // Real hour check (every 30 turns at horror >= 10)
+  if (G.turnos % 30 === 0 && G.horror >= 10 && !G.flags.horaRealCheck) {
+    const h = new Date().getHours();
+    if (h >= 23 || h < 5) {
+      G.flags.horaRealCheck = true;
+      br(); msgHorror('Una voz susurra: "Es muy tarde, ' + G.nombreJugador + '. \u00bfNo deberias estar durmiendo? ...o es que tienes miedo de cerrar los ojos?"');
+      if (!G.easters.horaReal) { G.easters.horaReal = true; G.easterEggs++; }
+      incrementHorror(1);
+    }
+  }
+  
+  // Sanity effects (at high horror)
+  if (G.horror >= 15 && G.turnos % 10 === 0) {
+    const efectos = [
+      'Las paredes parecen respirar por un instante.',
+      'Tu sombra se mueve independientemente de ti durante un segundo.',
+      'Escuchas tu propia voz diciendo algo que no has dicho.',
+      'Los colores de la habitacion se invierten por un parpadeo.',
+      'Sientes una mano en el hombro. No hay nadie detras.'
+    ];
+    br(); msgHorror(efectos[Math.floor(Math.random()*efectos.length)]);
+  }
+  
+  // Easter egg: player name in letters (every 50 turns)
+  if (G.turnos % 50 === 0 && G.horror >= 12 && G.nombreJugador) {
+    const idx = Math.floor(G.turnos/50) - 1;
+    if (idx < G.nombreJugador.length) {
+      const letra = G.nombreJugador[idx].toUpperCase();
+      br(); msgHorror('En la pared, grabada con algo afilado, aparece una letra: "' + letra + '". Es la ' + (idx+1) + 'a letra de algo.');
+      if (idx === G.nombreJugador.length - 1 && !G.easters.nombreLetras) {
+        G.easters.nombreLetras = true; G.easterEggs++;
+        br(); msgHorror('Las letras deletrean tu nombre: ' + G.nombreJugador + '. La casa te conoce.');
+      }
+    }
+  }
+  
+  updateUI();
+}
+
+
+// ==================== ROOM DEFINITIONS ====================
+
+// --- EXTERIOR ---
+defRoom('jardin_frontal', {
+  alias: 'Jardin Frontal', floor: 'ext',
+  describe: () => {
+    if (G.horror < 5) msg("Un jardin amplio y cuidado se extiende frente a la casa. Un sendero de piedra serpentea entre rosales y hortensias que perfuman el aire con una dulzura casi empalagosa. Una puerta de hierro forjado marca el limite de la propiedad, sus barrotes cubiertos de hiedra. La luz del sol bana cada rincon con una calidez reconfortante, y las abejas zumban perezosamente entre los petalos. Todo parece sacado de una postal de otro siglo.");
+    else if (G.horror < 9) msg("El jardin frontal se extiende ante ti, pero algo ha cambiado. Las flores siguen ahi, hermosas, aunque sus colores parecen demasiado intensos, casi artificiales. El sendero de piedra parece mas largo de lo que recuerdas. La puerta de hierro chirria suavemente aunque no hay viento. Las abejas han desaparecido. Un silencio pesado cuelga sobre los rosales como una red invisible.");
+    else if (G.horror < 13) msg("El jardin ha perdido toda pretension de belleza. Las flores se inclinan hacia ti cuando pasas, como si te siguieran. El sendero de piedra tiene grietas que no estaban antes, y entre ellas crece algo oscuro y humedo. La puerta de hierro esta oxidada hasta los huesos, sus barrotes retorcidos en angulos imposibles. El aire huele a tierra removida, a algo enterrado que no deberia estarlo.");
+    else msg("El jardin es un cementerio que finge ser un jardin. Las flores son de un rojo enfermizo, del color exacto de la sangre seca. El sendero de piedra parece hundirse ligeramente bajo tus pies, como si caminases sobre algo blando. La puerta de hierro muestra simbolos que antes no estaban ahi. Y en un rincon, entre los rosales muertos, hay algo nuevo: una lapida de piedra gris que juras que antes no existia.");
+  },
+  exits: { norte: {to:'recepcion'}, sur: {to:'camino_pueblo', script: () => {
+    if (G.flags.puebloDesaparecido) { msg("\u00bfPueblo? \u00bfQue pueblo? Miras hacia el sur y solo ves niebla. Un camino que no lleva a ninguna parte. Pero aun asi... tus pies se mueven solos."); br(); }
+    if (G.flags.visitoPueblo) G.flags.visitoPueblo2 = true;
+    G.flags.visitoPueblo = true;
+  }}},
+  objects: {
+    flores: { alias: 'flores', look: () => {
+      if (G.horror < 7) msg("Rosales rojos y blancos, hortensias azuladas, margaritas silvestres. Un jardin mantenido con esmero y dedicacion. Las flores estan perfectas, como si las hubiesen plantado esta misma manana.");
+      else if (G.horror < 13) msg("Las flores se inclinan hacia ti de forma casi imperceptible. Sus petalos tienen venas oscuras que antes no habias notado. Algunas rosas rojas parecen latir suavemente, como pequenos corazones vegetales.");
+      else msg("Las flores estan marchitas pero no muertas. Se retuercen lentamente, abriendose y cerrandose como bocas diminutas. Sus raices sobresalen de la tierra, palidas y gruesas, como dedos que buscan algo que agarrar.");
+    }},
+    'camino de piedra': { alias: 'camino de piedra', look: () => {
+      if (G.horror < 7) msg("Un sendero de piedras lisas y bien colocadas que lleva desde la puerta de hierro hasta la entrada de la casa. Las piedras estan gastadas por decadas de pasos, pulidas hasta brillar suavemente bajo la luz.");
+      else msg("Las piedras del camino estan agrietadas y desiguales. Algunas se han hundido, otras sobresalen en angulos incomodos. Las juntas estan rellenas de algo oscuro que no es musgo. Si miras de reojo, las piedras parecen reorganizarse cuando no las observas directamente.");
+    }},
+    'puerta de hierro': { alias: 'puerta de hierro', look: () => {
+      if (G.horror < 7) msg("Una puerta de hierro forjado con elaborados arabescos. La hiedra la envuelve parcialmente, dandole un aspecto romantico. Se abre y se cierra con facilidad, aunque emite un leve chirrido.");
+      else if (G.horror < 13) msg("La puerta de hierro esta mas oxidada de lo que recuerdas. Los arabescos parecen formar figuras que se retuercen: rostros con las bocas abiertas en gritos silenciosos. La hiedra la aprieta como si intentase estrangularla.");
+      else msg("Los barrotes de la puerta se han curvado hacia dentro, como costillas de una jaula disenada para mantener algo dentro, no fuera. Los arabescos forman claramente palabras en un idioma que no reconoces.");
+    }},
+    lapida: { alias: 'lapida', look: () => {
+      if (G.horror >= 13) {
+        msg("Te acercas a la lapida de piedra gris entre los rosales. Esta cubierta de musgo y liquen, pero las letras talladas son perfectamente legibles."); br();
+        msg("  " + G.nombreJugador); msg("  Fecha de nacimiento: una que conoces demasiado bien."); msg("  Fecha de defuncion: hoy."); br();
+        msg("El suelo frente a la lapida esta removido. Fresco. Como si alguien hubiese cavado recientemente.");
+        if (!G.easters.vioTumba) { G.easters.vioTumba = true; G.easterEggs++; br(); msg("Un escalofrio te recorre de pies a cabeza. Esto no puede ser real."); incrementHorror(2); }
+      } else msg("No ves ninguna lapida. Solo rosales y tierra humeda.");
+    }}
+  }
+});
+
+defRoom('camino_pueblo', {
+  alias: 'Camino al Pueblo', floor: 'ext',
+  describe: () => {
+    if (G.horror < 7) msg("Un camino de tierra compactada se extiende hacia el sur, flanqueado por arboles altos y delgados que forman un tunel natural de sombras y luz moteada. No hay pajaros cantando. No hay brisa moviendo las hojas. El silencio es tan absoluto que puedes escuchar tu propia sangre circulando. El camino parece no haber sido transitado en mucho tiempo.");
+    else msg("El camino de tierra se adentra en una oscuridad que no deberia existir a esta hora del dia. Los arboles a ambos lados se inclinan sobre el sendero como figuras encapuchadas que observan tu paso. No hay sonido alguno. Solo el crujir de tus propios pasos sobre la tierra seca. Cuanto mas caminas, mas sientes que el camino se alarga, que los arboles se multiplican.");
+  },
+  exits: { norte: {to:'jardin_frontal'}, sur: {to:'plaza_pueblo'} },
+  objects: {
+    arboles: { alias: 'arboles', look: () => {
+      if (G.horror < 7) msg("Alamos y robles viejos flanquean el camino. Sus troncos son gruesos y retorcidos por la edad. Las hojas estan completamente inmoviles, como si el tiempo se hubiese detenido en sus ramas. Ni una sola hoja se mueve. Es antinatural.");
+      else msg("Los arboles parecen mas cerca del camino que antes. Sus ramas se extienden como brazos huesudos, y en la corteza de varios troncos distingues formas que parecen rostros con las bocas abiertas. Uno de los arboles tiene marcas de unas, muchas, a la altura de una persona que intentase trepar desesperadamente.");
+    }},
+    cartel: { alias: 'cartel', look: () => {
+      msg("Un cartel de madera podrida senala hacia el sur. Las letras, apenas visibles bajo capas de pintura descascarillada, dicen:"); br(); msg("  VALLE QUIETO - 2 km"); br();
+      if (G.horror < 7) msg("La pintura es tan antigua que se deshace al tacto. Debajo de la pintura descascarillada parece haber otra capa, mas antigua, con un nombre diferente que no alcanzas a leer.");
+      else msg("Debajo de la pintura descascarillada hay otra capa con otro nombre: 'VALLE DE LOS CALLADOS'. Y debajo de esa, otra mas: 'VALLE SIN RETORNO'. Cada capa es mas antigua que la anterior. \u00bfCuantas veces han renombrado este lugar?");
+    }}
+  }
+});
+
+defRoom('plaza_pueblo', {
+  alias: 'Plaza del Pueblo', floor: 'ext',
+  describe: () => {
+    msg("Una plaza vacia se abre ante ti como la palma de una mano muerta. En el centro, una fuente de piedra que lleva decadas sin agua. A su alrededor, edificios de fachadas descoloridas con las contraventanas cerradas a cal y canto. No hay nadie. No hay ropa tendida, ni macetas en las ventanas, ni el mas minimo signo de vida humana.");
+    if (G.horror >= 7) { br(); msg("Podrias jurar que una de las contraventanas se movio cuando no mirabas directamente. Y el reloj de la iglesia, en lo alto de un campanario invisible, marca una hora que no existe."); }
+    if (G.horror >= 13) { br(); msg("En las paredes de los edificios hay mensajes escritos con algo oscuro: 'NO TE VAYAS', 'QUEDATE', 'ERES NUESTRO'. La caligrafia es infantil."); }
+  },
+  exits: { norte: {to:'camino_pueblo'}, este: {to:'calle_pueblo'} },
+  objects: {
+    'fuente seca': { alias: 'fuente seca', look: () => {
+      msg("Una fuente circular de piedra labrada, seca como un hueso. En el fondo se acumulan hojas secas, polvo y monedas de siglos diferentes, como si la gente hubiese lanzado deseos a esta fuente durante trescientos anos.");
+      if (G.horror >= 10) { br(); msg("Entre las monedas hay algo que brilla de forma diferente. Es una moneda moderna, de este ano. En su reverso, alguien ha grabado tu nombre con un alfiler."); }
+    }},
+    edificios: { alias: 'edificios', look: () => {
+      msg("Edificios de dos plantas con fachadas de estuco agrietado y descolorido. Todas las puertas estan cerradas. Es como si los edificios fuesen bloques solidos de piedra disfrazados de casas.");
+      if (G.horror >= 7) { br(); msg("Acercas el oido a una de las puertas. Al principio no oyes nada. Luego, muy debilmente, algo que podria ser una respiracion. O muchas respiraciones sincronizadas."); }
+    }},
+    banco: { alias: 'banco', look: () => {
+      msg("Un banco de hierro y madera frente a la fuente, desgastado por generaciones de vecinos. En el respaldo, docenas de iniciales grabadas a cuchillo: parejas de enamorados, fechas de veranos lejanos.");
+      if (G.horror >= 10) { br(); msg("La ultima inscripcion grabada es reciente. La madera aun esta clara donde el cuchillo corto. Dice: '" + G.nombreJugador + " estuvo aqui'. No recuerdas haber grabado nada."); }
+    }}
+  }
+});
+
+defRoom('calle_pueblo', {
+  alias: 'Calle del Pueblo', floor: 'ext',
+  describe: () => {
+    msg("Una calle estrecha y empedrada, la unica del pueblo, flanqueada por comercios cerrados cuyos carteles se han destenido hasta la ilegibilidad. El polvo lo cubre todo. Tus pisadas levantan pequenas nubes que tardan demasiado en posarse.");
+    if (G.horror < 7) msg("La sensacion de abandono es abrumadora. Este lugar lleva muerto mucho tiempo. Te preguntas adonde fueron todos.");
+    else msg("No estan abandonados. Estan esperando. Cada ventana oscura es un ojo que te observa. Cada puerta cerrada contiene algo que quiere salir pero aun no es el momento.");
+    if (G.horror >= 13) { br(); msg("Un cartel en una de las tiendas se ha vuelto legible de repente. Dice: 'CARNICERIA'. En el escaparate polvoriento hay formas palidas que podrian ser maniquies. Podrian."); }
+  },
+  exits: { oeste: {to:'plaza_pueblo'}, sur: {to:'camino_regreso'} },
+  objects: {
+    tiendas: { alias: 'tiendas', look: () => {
+      msg("Comercios de otro siglo: una merceria, lo que parece una ferreteria, algo que pudo ser una panaderia. Todos cerrados. Los escaparates estan tan sucios que solo puedes ver sombras borrosas detras del cristal.");
+      if (G.horror >= 10) { br(); msg("Limpias con la manga una esquina de un escaparate. Detras del cristal, en la penumbra, hay una figura sentada en una silla. Inmovil. Antes de que puedas determinar que es, la mugre vuelve a cubrir el cristal como si nunca lo hubieses limpiado."); }
+    }},
+    'ventanas oscuras': { alias: 'ventanas oscuras', look: () => {
+      msg("Las ventanas de los pisos superiores son rectangulos de oscuridad absoluta. No hay cortinas, ni cristales rotos, ni reflejos. Solo vacio negro que absorbe la luz.");
+      if (G.horror < 7) msg("Crees ver movimiento detras de una ventana. Luego nada. Probablemente fue tu imaginacion.");
+      else msg("Hay movimiento detras de varias ventanas. Sombras que se desplazan lentamente de un lado a otro, como personas caminando en circulos dentro de habitaciones a oscuras. No es tu imaginacion. Desearias que lo fuese.");
+    }},
+    farola: { alias: 'farola', look: () => {
+      msg("Una farola de hierro fundido con un fanal de cristal opaco. No funciona, obviamente. No hay cables electricos en todo el pueblo. En la base, una placa de bronce: 'Donacion de la familia Valdecueva, 1923'.");
+      if (G.horror >= 7) { br(); msg("La farola emite un zumbido grave, casi inaudible, como si la electricidad intentase fluir por cables que ya no existen."); }
+    }}
+  }
+});
+
+defRoom('camino_regreso', {
+  alias: 'Camino de Regreso', floor: 'ext',
+  describe: () => {
+    msg("Sigues caminando. El camino se curva suavemente a la derecha. Luego a la izquierda. Llevas un buen rato andando pero el paisaje no cambia."); br();
+    msg("Caminas mas rapido. El camino se curva otra vez. Y otra. Empiezas a reconocer marcas en los arboles. Has pasado por aqui antes. El camino describe un circulo perfecto."); br();
+    msg("Y entonces ves la casa. Nicanor Molinare, con su fachada elegante y sus ventanas iluminadas, aparece ante ti como si nunca te hubieses marchado. El camino siempre te trae de vuelta."); br();
+    msg("Bienvenido de vuelta. Todos vuelven.");
+    G.flags.puebloDesaparecido = true;
+    if (!G.easters.caminoRegreso) { G.easters.caminoRegreso = true; G.easterEggs++; }
+    incrementHorror(1);
+    setTimeout(() => moveToRoom('recepcion'), 2000);
+  },
+  exits: {}
+});
+
+
+// --- PLANTA BAJA ---
+defRoom('recepcion', {
+  alias: 'Recepcion', floor: 'pb',
+  describe: () => {
+    if (G.horror < 4) msg("La recepcion de Nicanor Molinare te envuelve con una calidez reconfortante. Un mostrador de madera oscura y noble preside la estancia, detras del cual cuelgan llaves de laton en un tablero numerado. Varias pinturas al oleo adornan las paredes empapeladas con motivos florales. Una lampara de aceite sobre el mostrador emite una luz dorada y estable. Desde algun lugar llega un delicioso aroma a pan recien horneado y estofado casero.");
+    else if (G.horror < 7) msg("La recepcion parece la misma de siempre, pero algo no encaja. La luz de la lampara de aceite parpadea a intervalos irregulares. Las pinturas al oleo... \u00bfno mostraban paisajes diferentes antes? El mostrador de madera cruje suavemente aunque nadie lo toca. El aroma a pan se mezcla ahora con otro olor, mas profundo, mas antiguo.");
+    else if (G.horror < 10) msg("Las paredes de la recepcion parecen mas cercanas que ayer. El empapelado floral se ha oscurecido y las flores del estampado parecen marchitas. El mostrador tiene marcas de aranazos que antes no estaban ahi. Las pinturas muestran los mismos paisajes pero bajo cielos tormentosos. La lampara de aceite arde con una llama azulada que no deberia existir.");
+    else msg("La recepcion es una version enferma de si misma. El empapelado se despega en tiras que cuelgan como piel muerta. Las pinturas al oleo muestran escenas que no estaban antes: figuras sin rostro en paisajes carbonizados. El mostrador supura una sustancia oscura por las grietas de la madera. El libro de registro sangra tinta negra por los bordes.");
+  },
+  exits: { sur: {to:'jardin_frontal', script:()=>{ if(G.flags.puebloDesaparecido){msg("Sientes un escalofrio al dirigirte hacia la puerta. Algo en tu interior te dice que fuera ya no queda nada.");br();} }}, norte: {to:'sala_estar'}, este: {to:'comedor'}, oeste: {to:'bano_visitas'}, subir: {to:'pasillo_primer_piso'} },
+  objects: {
+    'libro de registro': { alias: 'libro de registro', look: () => {
+      msg("Abres el pesado libro de registro encuadernado en cuero. Los ultimos registros legibles son:"); br();
+      msg("  - Martin Blackwood, 14 de octubre de 1983"); msg("  - Elena Voss, 3 de marzo de 1991"); msg("  - Ricardo Hale, 22 de julio de 2001"); msg("  - Isabel Crane, 9 de noviembre de 2015"); msg("  - " + G.nombreJugador + ", fecha de hoy");
+      if (G.horror >= 16) { br(); msg("Espera. Hay otro nombre, justo encima del tuyo, escrito con una caligrafia que se parece inquietantemente a la tuya:"); br(); msg("  - " + G.nombreJugador + ", una semana antes de tu llegada."); br(); msg("La tinta aun esta fresca.");
+        if (!G.easters.libroRegistro6) { G.easters.libroRegistro6 = true; G.easterEggs++; incrementHorror(1); }
+      }
+    }},
+    mostrador: { alias: 'mostrador', look: () => {
+      msg("Un mostrador de madera oscura, gastado por incontables manos a lo largo de decadas. La superficie esta pulida por el uso.");
+      if (G.horror >= 7) { br(); msg("Los surcos en la madera forman patrones. No son aleatorios. Si entrecierras los ojos, parecen letras. 'AYUDA'. 'NO SALGAS'. 'EL ESCUCHA'. Grabadas por unas desesperadas a lo largo de muchos anos."); }
+    }},
+    pinturas: { alias: 'pinturas', look: () => {
+      if (G.horror < 4) msg("Cuatro pinturas al oleo en marcos dorados. Muestran el valle en cada estacion: primavera con flores, verano con campos dorados, otono con hojas carmesi, invierno con nieve pristina. Son hermosas. En cada una aparece Nicanor Molinare al fondo.");
+      else if (G.horror < 7) msg("Las cuatro pinturas muestran las mismas estaciones, pero los colores se han apagado sutilmente. Y en la pintura de invierno, juras que hay huellas en la nieve que antes no estaban. Huellas que van hacia la casa pero ninguna que salga.");
+      else if (G.horror < 13) msg("Las pinturas han cambiado. La primavera muestra flores marchitas. El verano esta nublado. El otono muestra arboles desnudos. El invierno muestra la casa rodeada de figuras oscuras en la nieve. Y en las cuatro, hay una ventana iluminada en el atico.");
+      else msg("Las pinturas muestran la misma escena en las cuatro estaciones: Nicanor Molinare envuelta en llamas negras que no dan luz. Frente a ella, una hilera de figuras inmoviles observa el fuego. Una de las figuras se parece a ti.");
+    }}
+  }
+});
+
+defRoom('sala_estar', {
+  alias: 'Sala de Estar', floor: 'pb',
+  describe: () => {
+    if (G.horror < 4) msg("Una sala amplia y acogedora, dominada por una chimenea de piedra donde crepita un fuego calido. Dos sofas tapizados en tela granate flanquean una mesita baja. Una gran estanteria de roble ocupa toda una pared, repleta de libros de lomos gastados. Un cuadro al oleo cuelga sobre la chimenea. La luz del fuego bana todo con un resplandor anaranjado.");
+    else if (G.horror < 7) msg("La sala de estar mantiene su aspecto acogedor, pero los detalles inquietan. La chimenea arde con un fuego que nunca necesita mas lena. Los sofas tienen marcas de uso en asientos donde juras que nadie se ha sentado. Los libros de la estanteria cambian de posicion cuando no los miras. El cuadro sobre la chimenea muestra el mismo paisaje de siempre, aunque las nubes parecen haberse movido.");
+    else if (G.horror < 13) msg("La sala de estar es una parodia de confort. El fuego de la chimenea arde sin producir calor, sus llamas de un azul enfermizo. Los sofas tienen hendiduras profundas de cuerpos que no puedes ver. Los libros cambian de posicion. El cuadro muestra ahora un valle arrasado bajo un cielo rojo.");
+    else msg("No quieres estar aqui. La chimenea vomita un fuego negro que se mueve contra la gravedad. Los sofas respiran. La estanteria gime bajo el peso de libros que palpitan. El cuadro te muestra a ti, de espaldas, entrando en la casa por primera vez. Al pie: 'Huesped numero " + G.nombreJugador + ". Permanente.'");
+  },
+  exits: { sur: {to:'recepcion'} },
+  objects: {
+    chimenea: { alias: 'chimenea', look: () => {
+      if (G.horror < 7) msg("Una chimenea de piedra gris con un buen fuego crepitando. Los troncos arden con un calor reconfortante. La repisa esta adornada con pequenas figuras de porcelana: un pastor, una pastora, un cordero.");
+      else msg("El fuego arde, pero no produce calor. Las llamas se mueven de forma extrana, como grabaciones reproducidas al reves. Los troncos no se consumen. Las figuras de porcelana han cambiado de posicion. El pastor mira ahora hacia la pared. La pastora no tiene cara.");
+    }},
+    sofas: { alias: 'sofas', look: () => {
+      if (G.horror < 10) msg("Dos sofas amplios tapizados en terciopelo granate, mullidos y comodos. Los cojines estan perfectamente colocados, como si alguien los hubiese arreglado justo antes de que llegaras.");
+      else msg("Los sofas tienen hendiduras en los asientos, marcas de cuerpos invisibles. Mientras miras, una de las hendiduras se hace mas profunda, como si alguien se estuviese sentando lentamente. Un cojin se desplaza un centimetro hacia la derecha. Solo.");
+    }},
+    cuadro: { alias: 'cuadro', look: () => {
+      if (G.horror < 7) msg("Un oleo que muestra un valle verde bajo un cielo de verano. Montanas azuladas al fondo, un rio serpenteante, y en un claro, una casa que se parece mucho a esta.");
+      else msg("El cuadro ha cambiado. El valle sigue ahi pero bajo un cielo gris plomizo. El rio esta seco. La casa del claro tiene las ventanas rotas.");
+      br(); msg("El marco dorado esta ligeramente separado de la pared. Parece que hay algo detras.");
+    }},
+    'detras del cuadro': { alias: 'detras del cuadro', look: () => {
+      msg("Apartas el cuadro de la pared con cuidado. En la parte trasera, pegada al bastidor con cera antigua, hay una pagina amarillenta.");
+      if (!G.flags.encontroPagina3) { br(); msg("\u00a1Es una pagina de un diario! La arrancas cuidadosamente."); br();
+        msg("La pagina dice: 'Dia 47. Los libros se mueven. Cada noche cambian de orden. He intentado leerlos en el orden correcto pero siempre cambian. \u00bfY si el orden correcto es el inverso? El ultimo primero. El primero al final. Como todo en esta casa.'");
+        G.flags.encontroPagina3 = true; G.flags.paginasDiario = (G.flags.paginasDiario||0) + 1;
+        if (G.flags.paginasDiario >= 3) { G.flags.encontroDiario = true; incrementHorror(4); br(); msg("Has reunido las tres paginas del diario. Las palabras del antiguo huesped cobran un sentido terrible."); }
+      } else msg("Ya tomaste la pagina que estaba aqui.");
+    }},
+    estanteria: { alias: 'estanteria', look: () => {
+      msg("Una gran estanteria de roble macizo. Cinco libros destacan por sus lomos brillantes:"); br();
+      msg("  1. 'Cronicas de Valle Quieto'"); msg("  2. 'El Huesped Eterno'"); msg("  3. 'Memorias de la Casa'"); msg("  4. 'Puertas Sin Salida'"); msg("  5. 'El Ultimo Registro'"); br();
+      msg("Los demas libros tienen los titulos borrados. Estos cinco parecen los unicos que importan.");
+    }},
+    'el ultimo registro': { alias: 'El Ultimo Registro', look: () => {
+      msg("'El Ultimo Registro'. Contiene listas de nombres, fechas de llegada y... nada mas. No hay fechas de salida. Ninguna. Cientos de nombres y ninguno se fue jamas.");
+      if (!G.flags.libroSecuencia) G.flags.libroSecuencia = 0;
+      if (G.flags.libroSecuencia === 0) { G.flags.libroSecuencia = 1; br(); msg("Algo hace clic suavemente en la estanteria, como un mecanismo antiguo que se activa."); }
+      else { G.flags.libroSecuencia = 0; br(); msg("Los libros parecen reorganizarse solos. Oyes un chasquido, como si un mecanismo se reiniciase."); }
+    }},
+    'puertas sin salida': { alias: 'Puertas Sin Salida', look: () => {
+      msg("'Puertas Sin Salida'. Un ensayo filosofico sobre la naturaleza de los lugares cerrados. El ultimo capitulo se titula 'La Casa' y esta en blanco.");
+      if (!G.flags.libroSecuencia) G.flags.libroSecuencia = 0;
+      if (G.flags.libroSecuencia === 1) { G.flags.libroSecuencia = 2; br(); msg("Otro clic en la estanteria. Mas fuerte esta vez. Algo se esta abriendo."); }
+      else { G.flags.libroSecuencia = 0; br(); msg("Los libros parecen reorganizarse solos. Oyes un chasquido, como si un mecanismo se reiniciase."); }
+    }},
+    'memorias de la casa': { alias: 'Memorias de la Casa', look: () => {
+      if (!G.flags.libroSecuencia) G.flags.libroSecuencia = 0;
+      if (G.flags.libroSecuencia === 2) {
+        G.flags.libroSecuencia = 3;
+        msg("Sacas 'Memorias de la Casa' del estante y notas que es demasiado ligero. Lo abres y descubres por que: es hueco. Las paginas fueron recortadas para crear un compartimento secreto."); br();
+        msg("\u00a1Dentro hay una llave oxidada con una etiqueta que dice 'ATICO'!"); br(); msg("Tomas la llave. Tus manos tiemblan.");
+        G.flags.llaveAtico = true;
+      } else if (G.flags.llaveAtico) { msg("'Memorias de la Casa'. El libro hueco donde encontraste la llave del atico. El compartimento vacio te mira como una boca abierta."); }
+      else { G.flags.libroSecuencia = 0; msg("'Memorias de la Casa'. Intentas abrirlo pero las paginas parecen pegadas entre si. El libro vibra ligeramente en tus manos."); br(); msg("Los libros parecen reorganizarse solos."); }
+    }},
+    'el huesped eterno': { alias: 'El Huesped Eterno', look: () => {
+      msg("'El Huesped Eterno'. Una novela sobre un viajero que llega a una posada y nunca puede marcharse. Cada vez que intenta irse, el camino lo devuelve. Con cada intento, la posada se vuelve mas oscura, mas hambrienta. El viajero termina por amar su prision.");
+      if (!G.flags.libroSecuencia) G.flags.libroSecuencia = 0;
+      if (G.flags.libroSecuencia === 3) { G.flags.libroSecuencia = 4; br(); msg("El argumento de este libro te resulta dolorosamente familiar."); }
+      else if (G.flags.libroSecuencia < 3) { G.flags.libroSecuencia = 0; br(); msg("Los libros parecen reorganizarse solos."); }
+    }},
+    'cronicas de valle quieto': { alias: 'Cronicas de Valle Quieto', look: () => {
+      msg("'Cronicas de Valle Quieto'. Una historia del pueblo. Fundado en 1742. Prospero con la mineria. Decayo misteriosamente a finales del siglo XIX. El ultimo censo registrado data de 1947: poblacion cero."); br();
+      msg("El ano 1947 esta subrayado tres veces con tinta roja.");
+    }}
+  }
+});
+
+
+defRoom('comedor', {
+  alias: 'Comedor', floor: 'pb',
+  describe: () => {
+    if (G.horror < 4) msg("Un comedor elegante con una mesa larga de caoba preparada para seis comensales. Manteles de lino blanco, cubiertos de plata, copas de cristal tallado. Un candelabro de cristal pende del techo, proyectando arcoiris diminutos. Un reloj de pendulo marca el tiempo con un tictac ritmico. El ambiente es calido.");
+    else if (G.horror < 7) msg("El comedor mantiene su elegancia, pero la mesa esta puesta para seis y nunca has visto mas de tres personas. Los cubiertos estan siempre relucientes. El candelabro tintinea sin corriente de aire. El reloj de pendulo a veces da la hora incorrecta.");
+    else if (G.horror < 10) msg("La mesa tiene restos de comida que nadie recuerda haber servido. Los cubiertos estan empanados. El candelabro proyecta sombras que no corresponden con ningun objeto. El reloj muestra horas imposibles: las 25:61, las 13:87.");
+    else { msg("El comedor huele a comida podrida y cera derretida. En cada plato hay restos irreconocibles. Los cubiertos estan manchados de algo oscuro. El candelabro gira lentamente. Y el reloj..."); br(); msg("El reloj marca tu hora. La hora exacta. Y debajo: '...es la hora. Tu hora.'"); }
+  },
+  exits: { oeste: {to:'recepcion'}, este: {to:'cocina'} },
+  objects: {
+    'mesa del comedor': { alias: 'mesa del comedor', look: () => {
+      msg("Una mesa larga de caoba barnizada para seis comensales. Perfectamente puesta con manteles de lino, servilletas, cubiertos de plata alineados con precision milimetrica."); br(); msg("Debajo de la mesa, en la cara inferior del tablero, hay algo tallado en la madera.");
+    }},
+    'debajo de la mesa': { alias: 'debajo de la mesa', look: () => {
+      msg("Te agachas y miras la cara inferior de la mesa. Alguien ha tallado con un cuchillo un numero con trazo tembloroso:"); br(); msg("  1"); br(); msg("Solo un uno. \u00bfEl primer digito de algo?");
+      G.flags.digito1 = true;
+    }},
+    'reloj de pendulo': { alias: 'reloj de pendulo', look: () => {
+      if (G.horror < 7) msg("Un majestuoso reloj de pendulo con caja de caoba y esfera de porcelana. Los numeros romanos estan pintados en oro. El pendulo oscila con una regularidad hipnotica.");
+      else if (G.horror < 10) msg("El reloj marca las " + (Math.floor(Math.random()*30)+1) + ":" + (Math.floor(Math.random()*99)) + ". Eso no es posible. Los numeros cambian cada vez que apartas la vista. El pendulo oscila a un ritmo irregular, como un corazon enfermo.");
+      else { msg("El reloj muestra la hora exacta de tu reloj real. No deberia poder hacer eso — es un reloj mecanico del siglo XIX. En la esfera, grabado:"); br(); msg("  '...es la hora. Tu hora.'");
+        if (!G.easters.relojComedor) { G.easters.relojComedor = true; G.easterEggs++; }
+      }
+    }},
+    candelabro: { alias: 'candelabro', look: () => {
+      msg("Un candelabro de cristal tallado que pende del techo. Decenas de prismas descomponen la luz en arcoiris diminutos que danzan en las paredes.");
+      if (G.horror >= 7) { br(); msg("Los arcoiris se mueven siguiendo un patron. Si los sigues con la vista, deletrean letras que se disuelven antes de que puedas leerlas."); }
+    }},
+    cubiertos: { alias: 'cubiertos', look: () => {
+      msg("Cubiertos de plata maciza con el monograma 'NM' grabado en cada pieza. Cuando los tocas, estan frios. Muy frios. Como si hubiesen estado guardados en hielo.");
+      if (G.horror >= 10) { br(); msg("Uno de los cuchillos tiene algo en la hoja. Es un reflejo, pero no el tuyo. El rostro en la plata es el de alguien que se parece a ti pero mas viejo, mas delgado, con una expresion de resignacion absoluta."); }
+    }}
+  }
+});
+
+defRoom('cocina', {
+  alias: 'Cocina', floor: 'pb',
+  describe: () => {
+    if (G.horror < 7) msg("Una cocina amplia y rustica que huele a estofado y hierbas frescas. Ollas de cobre cuelgan de ganchos en la pared. Un fogon de lena grande con una olla de hierro que burbujea perpetuamente. Manojos de hierbas aromaticas cuelgan del techo. Es el corazon calido de la casa.");
+    else if (G.horror < 14) msg("La cocina mantiene su aspecto pero las ollas estan manchadas de algo que no es comida. El fogon arde sin que nadie lo alimente. Las hierbas estan secas y enfermizas. El estofado burbujea con trozos que prefieres no identificar. Los tarros de la despensa revelan cosas perturbadoras.");
+    else msg("La cocina es una carniceria disfrazada. Las ollas estan oxidadas. El fogon vomita un calor sofocante. Las hierbas del techo son restos secos de algo no vegetal. Y los tarros de la despensa tienen nombres. Nombres de huespedes. Uno tiene tu nombre, esperando ser llenado.");
+  },
+  exits: { oeste: {to:'comedor'}, norte: {to:'pasillo_servicio'} },
+  objects: {
+    fogon: { alias: 'fogon', look: () => {
+      msg("Un fogon de hierro fundido grande y pesado. El fuego arde bajo la olla con una constancia sobrenatural.");
+      if (G.horror >= 7) { br(); msg("El estofado burbujea con un sonido que se parece demasiado a una voz murmurando. Si acercas el oido: 'Mas. Necesito mas.'"); }
+    }},
+    hierbas: { alias: 'hierbas', look: () => {
+      if (G.horror < 7) msg("Manojos de romero, tomillo, laurel y salvia cuelgan del techo. Su aroma es intenso y reconfortante.");
+      else if (G.horror < 14) msg("Las hierbas colgantes estan mas secas y oscuras de lo normal. Algunas tienen hojas de formas extranas, con venas purpuras y un olor amargo que recuerda a la tierra de un cementerio.");
+      else msg("Lo que cuelga del techo no son hierbas. Son mechones de cabello de diferentes colores y texturas, atados con cordel y colgados a secar. Decenas de ellos. Algunos muy antiguos; otros recientes.");
+    }},
+    despensa: { alias: 'despensa', look: () => {
+      msg("Estantes llenos de tarros de cristal con conservas, encurtidos y sustancias de colores diversos.");
+      if (G.horror < 7) { br(); msg("Las etiquetas dicen cosas normales: 'Mermelada de mora', 'Pepinillos en vinagre', 'Tomate frito'."); }
+      else { br(); msg("Las etiquetas son inquietantes. 'Esencia de M.B.', 'Extracto de E.V.', 'Reduccion de R.H.'. Iniciales que coinciden con nombres del libro de registro."); br(); msg("Un frasco tiene escrito: 'Esencia - 4'. El numero cuatro esta en tinta roja."); G.flags.digito3 = true; }
+      if (G.flags.frascoDisponible) { br(); msg("Al fondo hay un frasco nuevo. Su etiqueta dice: 'Para " + G.nombreJugador + ". Beber en caso de necesidad.'"); }
+    }},
+    cuchillos: { alias: 'cuchillos', look: () => {
+      msg("Seis cuchillos de diferentes tamanos, desde uno pequeno de pelar hasta un imponente cuchillo de carnicero. Todos afilados hasta lo imposible.");
+      if (G.horror >= 10) { br(); msg("El cuchillo mas grande tiene manchas oscuras incrustadas en la junta entre la hoja y el mango."); }
+    }, take: () => { msg("Extiendes la mano pero algo te detiene. Tus musculos se niegan a obedecer. Una voz en tu cabeza susurra: 'Todavia no.'"); }}
+  }
+});
+
+defRoom('bano_visitas', {
+  alias: 'Bano de Visitas', floor: 'pb',
+  describe: () => {
+    if (G.horror < 7) msg("Un bano pequeno pero limpio, con azulejos blancos. Un lavabo de porcelana con grifos de bronce, y sobre el lavabo, un espejo ovalado con marco de plata deslustrada. Todo huele a limpio, a lavanda.");
+    else if (G.horror < 13) msg("Los azulejos tienen grietas finas como telaranas, y entre las juntas crece algo oscuro. El agua del grifo sale con un tinte rosado. La bombilla parpadea. Y el espejo... el espejo te espera. Siempre te esta esperando.");
+    else msg("Los azulejos estan agrietados y manchados. El agua sale del grifo sin que nadie lo abra, goteando con un ritmo constante. Las manchas entre las juntas forman nombres de personas que estuvieron aqui antes. Y el espejo brilla con una luz propia. Tu reflejo te devuelve una expresion que no es exactamente la tuya.");
+  },
+  exits: { este: {to:'recepcion'} },
+  objects: {
+    espejo: { alias: 'espejo', look: () => {
+      if (!G.flags.vecesEspejoVisitas) G.flags.vecesEspejoVisitas = 0;
+      G.flags.vecesEspejoVisitas++;
+      if (G.flags.vecesEspejoVisitas < 5) {
+        if (G.horror < 7) msg("Tu reflejo te devuelve la mirada. Te ves normal. Cansado, quizas, pero normal. \u00bfVerdad?");
+        else msg("Tu reflejo se mueve con un ligero retraso. O eres tu quien se mueve con retraso respecto a el.");
+      } else {
+        msg('<span style="color:#998888;">Miras el espejo por quinta vez.</span>'); br();
+        msg('<span style="color:#cc4444;font-size:1.1em;">Tu reflejo sonrie.</span>'); br();
+        msg('<span style="color:#ff4444;font-style:italic;">Tu no estas sonriendo.</span>'); br();
+        msg('<span style="color:#aa6666;">Retrocedes instintivamente. Tu reflejo no retrocede. Se queda ahi, sonriendo, con tus ojos pero no tu expresion.</span>');
+        if (!G.easters.espejoVisitas) { G.easters.espejoVisitas = true; G.easterEggs++; }
+        G.flags.vecesEspejoVisitas = 0;
+      }
+    }},
+    lavabo: { alias: 'lavabo', look: () => { msg("Un lavabo de porcelana con grifos de bronce verdoso. El agua sale fria, cristalina. Aunque a veces, solo a veces, tiene un tinte rosado casi imperceptible."); }},
+    azulejos: { alias: 'azulejos', look: () => {
+      if (G.horror < 7) msg("Azulejos blancos, limpios, impecables. Reflejan la luz de la bombilla desnuda del techo con un brillo casi clinico.");
+      else msg("Las juntas entre los azulejos estan oscurecidas con algo que no es moho. Si sigues las lineas oscuras con la vista, forman letras. Nombres. Fechas. Es como si las paredes llevasen un registro propio de quien ha pasado por aqui.");
+    }}
+  }
+});
+
+defRoom('pasillo_servicio', {
+  alias: 'Pasillo de Servicio', floor: 'pb',
+  describe: () => {
+    if (G.horror < 7) msg("Un pasillo estrecho y mal iluminado que conecta la cocina con el area de servicio. Las paredes estan pintadas de un blanco amarillento. Tuberias de cobre recorren el techo, goteando ocasionalmente. Una bombilla desnuda parpadea con un ritmo irregular.");
+    else msg("El pasillo se siente mas estrecho que antes. Las tuberias del techo gotean un liquido tibio que no es agua. La bombilla parpadea en un patron que podria ser codigo morse. Las paredes estan mas cerca, juras que estan mas cerca que ayer.");
+  },
+  exits: { sur: {to:'cocina'}, norte: {to:'lavadero'} },
+  objects: {
+    tuberias: { alias: 'tuberias', look: () => { msg("Tuberias de cobre verdoso recorren el techo. Gotean a intervalos irregulares. El liquido es tibio y tiene un ligero olor metalico."); }},
+    bombilla: { alias: 'bombilla', look: () => { msg("Una bombilla desnuda de filamento antiguo. Su luz parpadea de forma irregular, alternando entre una luz calida y un brillo frio y azulado. A veces, en el parpadeo, juras ver sombras que no deberian estar ahi."); }}
+  }
+});
+
+defRoom('lavadero', {
+  alias: 'Lavadero', floor: 'pb',
+  describe: () => {
+    if (G.horror < 7) msg("Un cuarto grande con pilas de lavar de piedra y tendederos de cuerda. Sabanas blancas cuelgan como fantasmas domesticos. El aire esta humedo y caliente. En el suelo, una alfombra gastada cubre parte del centro de la habitacion.");
+    else msg("Las sabanas cuelgan inmoviles, sin brisa, pero de vez en cuando una se hincha brevemente, como si algo pasara detras. Las pilas de lavar contienen agua estancada de un color lechoso. La alfombra del centro esta hundida en un punto, como si debajo hubiera un hueco. O una puerta.");
+    if (G.flags.abrioSotano) { br(); msg("La trampilla en el suelo esta abierta, revelando una escalera que desciende a la oscuridad."); }
+  },
+  exits: { sur: {to:'pasillo_servicio'}, bajar: {to:'escalera_sotano', locked: true, lockedMsg: 'La trampilla esta cerrada con candado. Necesitas un codigo de cuatro digitos.'} },
+  objects: {
+    'ropa tendida': { alias: 'ropa tendida', look: () => { msg("Sabanas blancas y manteles de lino cuelgan de tendederos de cuerda. Estan perfectamente limpias, recien lavadas. Pero \u00bfquien las lavo? No hay lavadora. No hay detergente. Solo las pilas de piedra y el agua."); }},
+    alfombra: { alias: 'alfombra', look: () => {
+      msg("Una alfombra persa gastada, colocada en el centro del lavadero. Es claramente decorativa, fuera de lugar en un cuarto de servicio. \u00bfPor que hay una alfombra aqui?");
+      if (G.horror >= 5) { br(); msg("Al levantar una esquina de la alfombra, descubres una trampilla de madera con un candado de combinacion de cuatro digitos. \u00bfAdonde lleva?"); }
+    }},
+    trampilla: { alias: 'trampilla', look: () => {
+      if (G.flags.abrioSotano) msg("La trampilla esta abierta. Una escalera de piedra desciende a la oscuridad. El aire que sube es frio y huele a tierra mojada.");
+      else msg("Una trampilla de madera gruesa con un candado de combinacion de cuatro digitos. La madera esta hinchada por la humedad. Desde el otro lado, muy lejos, llega un aire frio que huele a siglos.");
+    }}
+  }
+});
+
+
+// --- PRIMER PISO ---
+defRoom('pasillo_primer_piso', {
+  alias: 'Pasillo del Primer Piso', floor: 'p1',
+  describe: () => {
+    if (G.horror < 7) msg("Un pasillo largo alfombrado con un corredor de tela granate desgastado por los anos. Cinco puertas se abren a ambos lados: habitaciones de huespedes. Cuadros de paisajes adornan las paredes entre las puertas. Al fondo, una escalera sube al segundo piso. La luz entra por una ventana en el extremo y bana todo con un resplandor dorado.");
+    else if (G.horror < 14) msg("El pasillo parece mas largo que antes. La alfombra granate tiene manchas oscuras que forman un camino hasta tu habitacion. Los cuadros de las paredes muestran paisajes que cambian cada vez que pasas. Las puertas de las habitaciones estan entornadas — todas menos la tuya, que siempre esta cerrada. Del fondo del pasillo, de las escaleras que suben, llega un sonido: alguien arrastrando algo pesado.");
+    else msg("El pasillo pulsa como una garganta. La alfombra se ondula bajo tus pies. Los cuadros muestran tu cara en diferentes estados de descomposicion. Las puertas se abren y se cierran solas, respirando. Desde cada habitacion llega un sonido diferente: tecleo, sollozos, rasgunos, risas de nina. Y de las escaleras al segundo piso, un susurro constante: tu nombre, una y otra vez.");
+  },
+  exits: { bajar: {to:'recepcion'}, norte: {to:'tu_habitacion'}, este: {to:'habitacion_martin'}, oeste: {to:'habitacion_lucia'}, noreste: {to:'habitacion_ramon'}, noroeste: {to:'habitacion_sofia'}, sur: {to:'bano_primer_piso'}, subir: {to:'escalera_segundo_piso'} },
+  objects: {
+    cuadros: { alias: 'cuadros del pasillo', look: () => {
+      if (G.horror < 7) msg("Paisajes al oleo: bosques, montanas, rios, prados. Todos son hermosos y detallados, pintados con gran habilidad. Cada uno muestra un lugar diferente, pero en todos aparece la silueta de una casa al fondo.");
+      else msg("Los paisajes han cambiado. Son los mismos lugares, pero corrompidos. Bosques quemados. Montanas desmoronadas. Rios secos. Y la casa del fondo esta siempre iluminada, siempre esperando.");
+    }},
+    alfombra: { alias: 'alfombra del pasillo', look: () => {
+      msg("Una alfombra granate que recorre todo el pasillo. Esta desgastada en el centro por decadas de pasos.");
+      if (G.horror >= 5) { br(); msg("Al levantar una esquina de la alfombra, encuentras una inscripcion grabada en el suelo de madera: '9'. \u00bfEl segundo digito de algo?"); G.flags.digito2 = true; }
+    }}
+  }
+});
+
+defRoom('tu_habitacion', {
+  alias: 'Tu Habitacion', floor: 'p1',
+  describe: () => {
+    if (G.horror < 7) msg("Tu habitacion es sencilla pero acogedora. Una cama individual con sabanas de lino blanco, una mesita de noche con una lampara de aceite, y un armario de madera oscura. La ventana da al jardin frontal. Las paredes estan empapeladas con un estampado de flores azules que se repite infinitamente. Hay un diario personal sobre la mesita de noche.");
+    else if (G.horror < 14) msg("Tu habitacion ha cambiado sutilmente. Las flores del empapelado estan mas marchitas. La cama esta deshecha aunque juras haberla hecho esta manana. La lampara de aceite arde con una llama que no consume aceite. Y el diario sobre la mesita tiene mas paginas que antes — muchas mas.");
+    else msg("Tu habitacion es una celda disfrazada. El empapelado se cae en tiras revelando algo escrito debajo: nombres, fechas, suplicas. La cama tiene la forma de tu cuerpo hundida permanentemente. El armario esta abierto y dentro solo hay oscuridad — una oscuridad que parece tener profundidad infinita. El diario tiene cientos de paginas escritas con tu letra. No recuerdas haber escrito nada.");
+  },
+  exits: { sur: {to:'pasillo_primer_piso'} },
+  objects: {
+    cama: { alias: 'cama', look: () => {
+      if (G.horror < 7) msg("Una cama individual con sabanas de lino blanco, impecablemente hecha. El colchon es sorprendentemente comodo, del tipo que te atrapa y no te suelta.");
+      else msg("La cama tiene tu forma hundida en el colchon, como si hubieras dormido aqui durante anos. Las sabanas tienen manchas de sudor frio que forman siluetas humanas. Debajo de la almohada hay algo.");
+    }},
+    'debajo de la cama': { alias: 'debajo de la cama', look: () => {
+      msg("Miras debajo de la cama. Pelusas, polvo, y...");
+      if (G.horror < 7) msg("...nada mas. Solo el suelo de madera, limpio y oscuro.");
+      else if (G.horror < 14) { msg("...un espejo. Hay un espejo debajo de la cama, con el reflejo hacia arriba. Tu cara te mira desde abajo. Pero en el reflejo, la habitacion detras de ti tiene alguien de pie en la puerta."); br(); msg("Te giras. No hay nadie."); }
+      else { msg("...unas. Decenas de unas arrancadas, clavadas en la madera del suelo. Algunas son viejas y amarillentas. Otras son recientes. Forman un circulo perfecto alrededor de algo escrito con sangre seca: 'NO TE LEVANTES'."); incrementHorror(1); }
+    }},
+    'mesita de noche': { alias: 'mesita de noche', look: () => { msg("Una mesita de madera con una lampara de aceite y un diario personal. El cajon esta ligeramente abierto."); }},
+    armario: { alias: 'armario', look: () => {
+      if (G.horror < 7) msg("Un armario de madera oscura con un espejo empanado en la puerta. Dentro hay perchas vacias y un olor a naftalina.");
+      else msg("El armario esta abierto. La oscuridad de su interior es demasiado densa para ser normal. Si metes la mano, sientes que el espacio se extiende mucho mas alla de lo que deberia. Como si el armario fuese una puerta a otro lugar.");
+    }},
+    diario: { alias: 'diario personal', look: () => {
+      if (!G.flags.encontroPagina1) {
+        msg("Un diario viejo con tapas de cuero. Lo abres. La mayoria de las paginas estan en blanco, pero una tiene texto:"); br();
+        msg("'Dia 1. Llegue a Nicanor Molinare. Carmen es encantadora. El estofado es delicioso. Todo es perfecto. Demasiado perfecto. Demasiado.'"); br();
+        msg("Arrancas la pagina cuidadosamente.");
+        G.flags.encontroPagina1 = true; G.flags.paginasDiario = (G.flags.paginasDiario||0) + 1;
+        if (G.flags.paginasDiario >= 3) { G.flags.encontroDiario = true; incrementHorror(4); br(); msg("Has reunido las tres paginas del diario. Las palabras cobran un sentido terrible."); }
+      } else { msg("El diario. Ya arrancaste la pagina importante. Las demas paginas estan en blanco... o lo estaban. Ahora cada pagina tiene una sola frase repetida cientos de veces: 'NO TE VAYAS NO TE VAYAS NO TE VAYAS'."); }
+    }}
+  }
+});
+
+defRoom('habitacion_martin', {
+  alias: 'Habitacion de Martin', floor: 'p1',
+  describe: () => {
+    if (G.horror < 7) msg("La habitacion de Martin esta atestada de papeles. Manuscritos apilados en cada superficie horizontal, hojas sueltas en el suelo, una maquina de escribir antigua sobre un escritorio tambaleante. El aire huele a tinta y a cafe rancio. Martin esta sentado frente a la maquina, tecleando con una concentracion febril.");
+    else if (G.horror < 14) msg("Los manuscritos de Martin cubren ahora las paredes, pegados con cinta y tachuelas. La maquina de escribir teclea sola cuando Martin no esta mirando. Los papeles del suelo tienen un solo texto repetido: la descripcion de lo que acabas de hacer. Martin te mira con ojos que saben demasiado.");
+    else msg("La habitacion es papel. Las paredes son manuscritos. El suelo es manuscritos. El techo gotea tinta. Martin y la maquina son una sola cosa — sus dedos se funden con las teclas. La maquina escribe tu historia. Cada accion que tomas, cada pensamiento, cada latido. Martin es el narrador. Siempre lo fue.");
+  },
+  exits: { oeste: {to:'pasillo_primer_piso'} },
+  objects: {
+    manuscritos: { alias: 'manuscritos', look: () => {
+      if (G.horror < 7) msg("Pilas de papeles mecanografiados con una tipografia antigua. Son capitulos de algo... \u00bfuna novela? Los titulos de los capitulos son nombres de personas que no reconoces. O quizas si.");
+      else msg("Los manuscritos describen a los huespedes de Nicanor Molinare. Cada uno es un capitulo. El ultimo capitulo se titula con tu nombre. Esta en blanco. Todavia.");
+    }},
+    'maquina de escribir': { alias: 'maquina de escribir', look: () => {
+      msg("Una Olivetti Lettera 32 en perfecto estado, como recien sacada de fabrica. Las teclas estan gastadas pero funcionales. En el carro hay una hoja a medio escribir.");
+      if (G.horror >= 7) { br(); msg("La hoja dice: '" + G.nombreJugador + " examina la maquina de escribir. Lee estas palabras. Ahora levanta la vista.' \u00bfComo es posible que la maquina haya escrito lo que acabas de hacer?"); incrementHorror(1); }
+    }},
+    martin: { alias: 'Martin', look: () => {
+      if (G.horror < 7) msg("Un hombre de unos cuarenta anos con ojeras profundas y dedos manchados de tinta. Tiene el cabello despeinado y los ojos de alguien que no ha dormido bien en semanas. Su expresion es amable, la de alguien perdido en sus pensamientos.");
+      else if (G.horror < 14) msg("Martin ha envejecido. Las arrugas son mas profundas, el cabello mas gris, los ojos mas hundidos. Sus dedos se mueven constantemente, como si tecleara sobre una maquina invisible. Murmura frases que reconoces — son descripciones de lo que acabas de hacer.");
+      else msg("Martin esta sentado en la esquina, balanceandose. Sus ojos estan fijos en la maquina de escribir, que teclea sola. Sus labios se mueven al ritmo de las teclas. Ya no es un escritor. Es un transcriptor. Un medium entre la casa y la pagina.");
+    }, speak: () => {
+      if (G.horror < 7) { msg("Martin levanta la vista y sonrie con cansancio."); br(); msg("'\u00a1Ah, perdona! Estaba sumergido en el capitulo doce. \u00bfO era el trece? Los numeros se me mezclan aqui.'"); br(); msg("'Llevo anos escribiendo esta novela. Sobre una casa de huespedes. Se escribe sola, \u00bfsabes? Solo tengo que sentarme y las palabras salen.'"); }
+      else if (G.horror < 14) { msg("Martin te mira con ojos que saben demasiado."); br(); msg("'No debiste venir. Pero ya es tarde. La historia ya te incluye. Una vez que la maquina escribe tu nombre, ya eres parte del manuscrito. Y el manuscrito no tiene final.'"); br(); msg("'\u00bfQuieres saber un secreto? No soy yo quien escribe. Es la casa. Yo solo soy los dedos.'"); }
+      else { msg("Martin mueve los labios pero la voz viene de la maquina de escribir:"); br(); msg("'Ya casi terminamos tu capitulo. Solo falta el final. \u00bfCual eliges? Hay cinco. La casa es generosa.'"); br(); msg("'Pero te dire algo: ninguno es realmente un final. Todos son principios. Principios de algo peor.'"); incrementHorror(1); }
+    }}
+  }
+});
+
+
+defRoom('habitacion_lucia', {
+  alias: 'Habitacion de Lucia', floor: 'p1',
+  describe: () => {
+    if (G.horror < 7) msg("La habitacion de Lucia es casi espartana. Una cama perfectamente hecha, una maleta sin abrir junto a la puerta, y nada mas. Ni fotos, ni libros, ni objetos personales. Las paredes estan desnudas. Es la habitacion de alguien que no planea quedarse. O de alguien que nunca llego del todo.");
+    else if (G.horror < 14) msg("La habitacion de Lucia sigue casi vacia, pero ahora esa vacuidad se siente ominosa. La maleta sigue sin abrir. La ventana muestra un paisaje diferente cada vez que la miras. Las paredes tienen marcas tenues, como si alguien hubiera escrito algo y luego lo hubiera borrado.");
+    else msg("La habitacion huele a ozono. La maleta se ha abierto sola pero esta vacia — completamente vacia, como si nunca hubiera contenido nada. La cama ya no parece una cama sino una camilla. Y Lucia esta sentada en el borde, mirando la pared con ojos que ya no son del todo humanos.");
+  },
+  exits: { este: {to:'pasillo_primer_piso'} },
+  objects: {
+    'maleta de lucia': { alias: 'maleta de Lucia', look: () => {
+      if (G.horror < 10) msg("Una maleta de cuero marron con etiquetas de equipaje en blanco. Nunca se abrio. Los cierres estan oxidados como si llevaran anos sin moverse, pero Lucia dice que llego hace unos dias.");
+      else msg("La maleta se ha abierto. No hay nada dentro. Ni ropa, ni documentos, ni nada. Solo el fondo de cuero, limpio y vacio. Como si Lucia hubiera llegado sin nada. Como si Lucia no existiera fuera de esta casa.");
+    }},
+    lucia: { alias: 'Lucia', look: () => {
+      if (G.horror < 7) msg("Una mujer joven, de unos treinta anos, con el cabello oscuro recogido en un mono apretado. Tiene ojeras profundas y una palidez que podria ser natural o podria ser agotamiento. Se mueve con una gracia fluida, casi eterea, como si pesara menos de lo que deberia.");
+      else if (G.horror < 14) msg("Lucia esta mas palida, mas delgada, mas transparente. A veces, cuando la luz le da de cierta forma, puedes ver a traves de ella. Sus ojos tienen un brillo acuoso que no es natural. Se mueve como si estuviera bajo el agua.");
+      else msg("Lucia ya no es solida del todo. Flota ligeramente sobre el suelo. Sus ojos son pozos de agua oscura. Cuando habla, su voz tiene un eco, como si hablaran dos personas a la vez — ella y algo que vive dentro de ella.");
+    }, speak: () => {
+      if (G.horror < 7) { msg("Lucia te mira con ojos que parecen ver a traves de ti."); br(); msg("'Llevo aqui... \u00bfcuanto? No recuerdo. Los dias se mezclan. Pero estoy bien. Estamos todos bien. Carmen cuida de nosotros.'"); br(); msg("'No intentes irte por el camino del sur. Solo lleva de vuelta. Siempre lleva de vuelta.'"); }
+      else if (G.horror < 14) { msg("Lucia habla sin mover los labios. La voz sale de ella pero tambien de las paredes."); br(); msg("'Somos ecos, \u00bfsabes? Todos nosotros. Martin, Ramon, Sofia, yo. Ecos de personas que estuvieron aqui. La casa nos necesita para parecer viva. Para atraer a los nuevos.'"); br(); msg("'Tu eres el nuevo. Disfruta mientras puedas. Pronto seras un eco tambien.'"); }
+      else { msg("Lucia te mira con compasion infinita."); br(); msg("'Ya casi eres de aqui. Lo siento en ti. La casa crece dentro de ti como crece dentro de todos. Pronto no recordaras que hubo un afuera.'"); br(); msg("'Pero hay una forma de salir. Solo una. Baja. Baja hasta el final. Encuentra la sala oculta. Y elige.'"); incrementHorror(1); }
+    }}
+  }
+});
+
+defRoom('habitacion_ramon', {
+  alias: 'Habitacion de Ramon', floor: 'p1',
+  describe: () => {
+    if (G.horror < 7) msg("La habitacion de Ramon es un estudio del paso del tiempo. Cada superficie vertical — paredes, puerta, armario — esta cubierta de marcas. Lineas verticales agrupadas de cinco en cinco, como un prisionero contando dias. Una silla solitaria esta orientada hacia la ventana. Ramon esta sentado en ella, mirando afuera.");
+    else if (G.horror < 14) msg("Las marcas en las paredes se han multiplicado. Ya no son solo lineas; hay numeros, ecuaciones, espirales de numeros que cubren cada centimetro. Ramon ha empezado a marcar el suelo tambien. Y el techo. Los numeros no tienen sentido: fechas imposibles, horas que no existen, cuentas regresivas hacia algo.");
+    else msg("La habitacion ES marcas. No hay paredes visibles bajo los millones de lineas y numeros. Ramon esta en el centro, marcando el aire con un lapiz que ya no tiene punta, haciendo surcos invisibles en nada. Los numeros en las paredes se mueven, cambian, cuentan algo que se acerca. Y las marcas especiales — hay siete verticales con un circulo — significan algo que no quieres saber.");
+  },
+  exits: { suroeste: {to:'pasillo_primer_piso'} },
+  objects: {
+    'marcas en la pared': { alias: 'marcas en la pared', look: () => {
+      msg("Miles de marcas cubren las paredes. Lineas verticales agrupadas de cinco en cinco. \u00bfCuantos dias? Intentas contar... cientos. Miles, quizas.");
+      if (G.horror >= 7) { br(); msg("Hay marcas diferentes entre las lineas normales. Siete verticales con un circulo alrededor. Se repiten cada cierto numero de lineas. No son dias. Son algo mas. Algo peor."); }
+      if (G.horror >= 10) { br(); msg("El numero '7' aparece con frecuencia obsesiva. 7 marcas en cada grupo especial. 7 huespedes. 7 habitaciones. 7 maneras de morir aqui dentro."); G.flags.digito4 = true; br(); msgEaster("(Cuarto digito del codigo descubierto: 7)"); }
+    }},
+    ramon: { alias: 'Ramon', look: () => {
+      if (G.horror < 7) msg("Un hombre mayor, de unos sesenta anos, con manos temblorosas y ojos que han visto demasiado. Su cabello blanco esta despeinado y su ropa esta cubierta de polvo de grafito. Tiene un lapiz en cada mano y marca las paredes con la precision de un relojero.");
+      else if (G.horror < 14) msg("Ramon ha envejecido mas. Sus manos tiemblan pero no dejan de marcar. El grafito se ha incrustado en su piel, dandole un tono grisaceo. Sus ojos estan vacios, fijos en un punto que no existe.");
+      else msg("Ramon ya no es un hombre que hace marcas. Es una marca que tiene forma de hombre. Su cuerpo esta cubierto de lineas, como si alguien lo hubiese rayado con un lapiz gigante. Se mece adelante y atras, contando en voz baja numeros que no terminan.");
+    }, speak: () => {
+      if (G.horror < 7) { msg("Ramon te mira brevemente sin dejar de marcar."); br(); msg("'Tres mil doscientos cuarenta y siete. Esos son los dias. \u00bfO eran las horas? Ya no se. Solo se que hay que seguir contando. Si dejas de contar, el tiempo te atrapa.'"); }
+      else if (G.horror < 14) { msg("Ramon susurra sin mirarte:"); br(); msg("'El tiempo aqui no es lineal. Va en circulos. Espirales. Cada dia es ligeramente diferente pero esencialmente igual. \u00bfSabes cual es el verdadero horror? Que te acostumbras. Que empiezas a preferir los circulos a la linea recta.'"); br(); msg("'El codigo. El ano en que todo empezo. 1-9-4-7. \u00bfYa lo sabias? Ahora lo sabes.'"); }
+      else { msg("Ramon te agarra del brazo con una fuerza imposible para un anciano."); br(); msg("'ESCUCHA. No tengo mucho tiempo. A veces la casa me deja ser yo. Solo un momento. BAJA AL SOTANO. El codigo es 1947. Encuentra la sala oculta. FIRMA EL LIBRO. Escribe lo correcto y saldras.'"); br(); msg("'Pero piensa bien que escribes. Solo tienes una oportunidad. Y la casa... la casa quiere que escribas tu nombre.'"); incrementHorror(1); }
+    }}
+  }
+});
+
+defRoom('habitacion_sofia', {
+  alias: 'Habitacion de Sofia', floor: 'p1',
+  describe: () => {
+    if (G.horror < 7) msg("La habitacion de Sofia es un jardin de colores. Dibujos hechos con crayones cubren las paredes a baja altura: flores, soles, casas, figuras sonrientes. Juguetes antiguos estan esparcidos por el suelo: una muneca de porcelana, un oso de peluche, bloques de madera. Una cama pequena con una colcha de patchwork ocupa un rincon. Sofia esta sentada en el suelo, dibujando.");
+    else if (G.horror < 14) msg("Los dibujos de Sofia han cambiado. Las figuras sonrientes ahora lloran. Las casas estan en llamas. Los soles son negros. La muneca de porcelana tiene los ojos pintados de negro. Sofia dibuja con una concentracion feroz, llenando cada espacio disponible con imagenes que una nina no deberia imaginar.");
+    else msg("Los dibujos se mueven. Las figuras lloran lagrimas que corren pared abajo. Las casas arden con fuego real que no quema. Los soles negros giran lentamente. Sofia esta en el centro, rodeada de crayones rotos, dibujando algo en el suelo: un circulo perfecto con tu nombre en el centro. 'Es un mapa,' dice sin levantar la vista. 'Un mapa de ti.'");
+  },
+  exits: { sureste: {to:'pasillo_primer_piso'} },
+  objects: {
+    juguetes: { alias: 'juguetes', look: () => {
+      if (G.horror < 7) msg("Juguetes de otra epoca: una muneca de porcelana con vestido de encaje, un oso de peluche con un ojo de boton, bloques de madera con letras. Todo esta perfectamente conservado, como recien comprado. Pero estos juguetes son de los anos 40, al menos.");
+      else msg("Los juguetes se han movido desde la ultima vez. La muneca ahora te mira directamente. El oso de peluche tiene los dos ojos de boton, pero juras que antes le faltaba uno. Los bloques de madera deletrean algo: 'V-E-T-E'.");
+    }},
+    dibujos: { alias: 'dibujos de Sofia', look: () => {
+      if (G.horror < 7) msg("Dibujos infantiles hechos con crayones de cera: casas con chimeneas humeantes, familias de palitos sonrientes, flores gigantes, soles amarillos. Tipicos dibujos de nina. Excepto que estan hechos con una habilidad inusual para una nina de su edad.");
+      else if (G.horror < 14) { msg("Los dibujos muestran escenas perturbadoras: personas sin boca, casas con barras en las ventanas, un sol negro, una nina sola en un jardin de flores muertas. Uno de los dibujos te muestra a TI, entrando por la puerta de la casa, con una sonrisa que no reconoces."); br(); msg("Al pie del dibujo, con letra infantil: '" + G.nombreJugador + " llega a casa.'"); }
+      else { msg("Los dibujos son profecias. Cada uno muestra algo que ha ocurrido o esta a punto de ocurrir. El ultimo dibujo te muestra en una habitacion oscura, frente a un libro abierto, con una pluma en la mano. Hay cinco caminos que salen de tu figura, cada uno en un color diferente. Cinco finales."); incrementHorror(1); }
+    }},
+    sofia: { alias: 'Sofia', look: () => {
+      if (G.horror < 7) msg("Una nina de unos ocho anos con el cabello negro hasta la cintura y ojos igualmente oscuros. Lleva un vestido blanco anticuado y zapatos de charol. Tiene una sonrisa dulce que no llega del todo a sus ojos. Dibuja con una concentracion absoluta.");
+      else if (G.horror < 14) msg("Sofia no ha envejecido. Mientras todos los demas se deterioran, ella permanece igual. Sus ojos negros son demasiado antiguos para su cara de nina. A veces habla con alguien que no esta ahi. A veces ese alguien responde.");
+      else msg("Sofia no es una nina. Nunca lo fue. Lo que parece una nina de ocho anos tiene ojos que han visto siglos. Se mueve con una gracia imposible. Y cuando sonrie, por un instante, puedes ver todos los dientes. Demasiados dientes.");
+    }, speak: () => {
+      if (G.horror < 7) { msg("Sofia levanta la vista y te sonrie."); br(); msg("'\u00a1Hola! \u00bfQuieres dibujar conmigo? Tengo muchos crayones. Carmen me los trae.'"); br(); msg("'\u00bfSabes? Esta casa es magica. Si dibujas algo aqui, se hace real. Yo dibuje flores y el jardin se lleno de flores. Dibuje sol y nunca llueve.'"); br(); msg("'No dibujo cosas tristes. Nunca hay que dibujar cosas tristes.'"); }
+      else if (G.horror < 14) { msg("Sofia te mira con ojos que son pozos sin fondo."); br(); msg("'\u00bfSabes cuantos han venido antes que tu? Muchos. Muchos, muchos. Yo los dibuje a todos. Estan en mis dibujos. Para siempre.'"); br(); msg("'Carmen dice que no debo contarte la verdad. Pero yo creo que mereces saberla. Esta casa come. No comida. Come personas. Come su tiempo, su memoria, su nombre. Hasta que no queda nada.'"); G.flags.habloSofia2 = true; }
+      else { msg("Sofia se levanta y te toma de la mano. Sus dedos estan frios como el marmol."); br(); msg("'Puedo sacarte. Hay una forma. Abajo, en la sala oculta, hay un libro. Si escribes la palabra correcta, puedes irte.'"); br(); msg("'Pero tienes que elegir: tu libertad o la mia. Si escribes LIBERTAD, te vas. Si escribes mi nombre... yo me voy y tu te quedas.'"); br(); msg("'Nadie ha escrito mi nombre nunca. Todos eligen irse.'"); G.flags.habloSofia3 = true; incrementHorror(1); }
+    }}
+  }
+});
+
+defRoom('bano_primer_piso', {
+  alias: 'Bano del Primer Piso', floor: 'p1',
+  describe: () => {
+    if (G.horror < 7) msg("Un bano mas grande que el de visitas, con una banera de hierro esmaltado con patas de garra. Azulejos blancos y negros en patron de ajedrez. Un espejo rectangular sobre un lavabo de pedestal. El agua del grifo sale caliente sin necesidad de esperar.");
+    else if (G.horror < 13) msg("La banera esta llena de agua que nadie ha abierto. El agua tiene un tono grisaceo. Los azulejos blanco y negro se han desordenado formando patrones que parecen rostros. El espejo esta empanado aunque no hay vapor. Algo ha escrito en el vaho: 'MIRA DETRAS DE TI'.");
+    else msg("La banera rebosa de un liquido oscuro y espeso que no es agua. Los azulejos forman un mosaico que muestra tu cara, repetida cientos de veces en el patron blanco y negro. El espejo no refleja el bano — refleja otra habitacion, la sala oculta, con alguien sentado en la silla del centro.");
+  },
+  exits: { norte: {to:'pasillo_primer_piso'} },
+  objects: {
+    espejo: { alias: 'espejo del bano', look: () => {
+      if (!G.flags.vecesEspejoBano) G.flags.vecesEspejoBano = 0;
+      G.flags.vecesEspejoBano++;
+      if (G.flags.vecesEspejoBano < 5) msg("Tu reflejo te devuelve una mirada cansada desde el espejo del bano.");
+      else { msg('<span style="color:#cc4444;">Tu reflejo sonrie. Tu no estas sonriendo. La sonrisa se ensancha mas de lo humanamente posible.</span>');
+        if (!G.easters.espejoBano) { G.easters.espejoBano = true; G.easterEggs++; } G.flags.vecesEspejoBano = 0; }
+    }},
+    banera: { alias: 'banera', look: () => {
+      if (G.horror < 7) msg("Una banera de hierro esmaltado con patas de garra de leon. Esta vacia y limpia, pero tiene manchas de oxido en el fondo que parecen mas viejas que la propia banera.");
+      else msg("La banera esta llena de agua grisacea que no recuerdas haber abierto. En la superficie, algo se mueve lentamente. No son olas. Son formas. Siluetas que se deslizan bajo la superficie como peces en un estanque oscuro.");
+    }},
+    'dona carmen': { alias: 'Dona Carmen', look: () => {
+      if (G.currentRoom === 'bano_primer_piso' && G.horror >= 10) {
+        msg("Carmen esta aqui. No la oiste entrar. Esta de pie junto a la banera, mirando el agua con una expresion que no le habias visto: hambre. Pura, antigua, insaciable hambre.");
+        msg("Cuando nota que la miras, su expresion cambia instantaneamente a la sonrisa maternal de siempre. 'Oh, \u00bfnecesitas una toalla, querido?'");
+      } else msg("Carmen no esta aqui ahora.");
+    }}
+  }
+});
+
+
+// --- SEGUNDO PISO ---
+defRoom('escalera_segundo_piso', {
+  alias: 'Escalera al Segundo Piso', floor: 'p2',
+  describe: () => {
+    if (G.horror < 7) msg("Una escalera estrecha de madera que sube al segundo piso. Cada escalon cruje de forma diferente bajo tus pies. Una ventana pequena y redonda deja entrar un haz de luz polvorienta. El aire es mas frio aqui arriba. Tres puertas se abren desde este rellano.");
+    else if (G.horror < 14) msg("Los crujidos de la escalera forman un patron que reconoces pero no puedes identificar. Cada vez que subes, el numero de escalones es diferente. La ventana redonda muestra un paisaje que no corresponde a la orientacion de la casa. Las tres puertas del rellano parecen mas juntas que antes.");
+    else msg("La escalera se ha convertido en una espiral. Los escalones se hunden bajo tus pies como carne blanda. La ventana muestra tu propia cara mirandote desde fuera. Las puertas respiran, sincronizadas con tu corazon. '" + G.nombreJugador + "', susurra la madera.");
+  },
+  exits: { bajar: {to:'pasillo_primer_piso'}, norte: {to:'atico', locked: true, lockedMsg: 'La puerta del atico esta cerrada con llave. Necesitas la llave del atico.', script: ()=>{ if(G.flags.llaveAtico) rooms.escalera_segundo_piso.exits.norte.locked=false; }}, este: {to:'habitacion_carmen', locked: true, lockedMsg: 'La habitacion de Carmen esta cerrada con llave.'}, oeste: {to:'cuarto_servicio'} },
+  objects: {
+    escalones: { alias: 'escalones', look: () => { msg("Escalones de madera oscura, gastados en el centro por generaciones de pasos. Cada uno cruje con una nota diferente, como un instrumento desafinado."); }},
+    'ventana redonda': { alias: 'ventana redonda', look: () => {
+      if (G.horror < 7) msg("Una ventana de ojo de buey que da al este. A traves de ella ves el jardin trasero de la casa — un huerto abandonado con un pozo de piedra en el centro.");
+      else msg("La ventana muestra algo diferente cada vez que la miras. Ahora muestra el jardin. Ahora una calle que no reconoces. Ahora una habitacion oscura con alguien sentado en una silla. Ahora tu propia cara, del otro lado del cristal, mirandote.");
+    }}
+  }
+});
+
+defRoom('atico', {
+  alias: 'Atico', floor: 'p2',
+  describe: () => {
+    if (G.horror < 10) msg("El atico es un almacen de memorias olvidadas. Baules apilados, sabanas que cubren muebles como fantasmas, cajas de carton llenas de objetos que nadie recuerda. El techo es bajo y las vigas estan a la vista, cubiertas de telaranas gruesas como cordeles. Una claraboya sucia deja filtrar una luz lechosa. El aire huele a papel viejo y naftalina.");
+    else msg("El atico esta vivo. Las sabanas se mueven sin viento. Los baules se abren y se cierran solos, mostrando brevemente su contenido: ropa vieja, fotografias, objetos personales de huespedes que nunca se fueron. Las telaranas no son telaranas — son hilos de algo organico que conecta todo como un sistema nervioso. La claraboya muestra un cielo que no existe.");
+  },
+  exits: { sur: {to:'escalera_segundo_piso'} },
+  objects: {
+    'diario viejo': { alias: 'diario viejo', look: () => {
+      msg("Un diario encuadernado en cuero, mucho mas viejo que el de tu habitacion. La caligrafia es elegante pero temblorosa. Lo abres:"); br();
+      msg("'15 de marzo de 1947. Soy el ultimo. Los demas se han ido — o eso dice Carmen. Pero oigo sus voces en las paredes. Creo que no se fueron. Creo que estan DENTRO.'"); br();
+      msg("'20 de marzo. He encontrado la sala de abajo. Hay un libro. Carmen dice que si escribo mi nombre, sere libre. Pero Nicanor me dijo en suenos que no lo haga. Que escriba VERDAD.'"); br();
+      msg("'25 de marzo. He decidido no escribir nada. Quizas eso es peor. Quizas el silencio es el sexto final. El que nadie elige.'");
+      if (!G.flags.encontroPagina2) { G.flags.encontroPagina2 = true; G.flags.paginasDiario = (G.flags.paginasDiario||0) + 1;
+        if (G.flags.paginasDiario >= 3) { G.flags.encontroDiario = true; incrementHorror(4); br(); msg("Has reunido las tres paginas del diario. La verdad empieza a revelarse."); }
+      }
+    }},
+    baules: { alias: 'baules', look: () => {
+      msg("Baules de madera y metal, apilados contra la pared. Los abres uno por uno:");
+      if (G.horror < 10) { msg("Ropa de epocas diferentes: vestidos del siglo XIX, trajes de los anos 30, camisas de los 70. Cada baul contiene las pertenencias de un huesped que nunca se las llevo."); }
+      else { msg("Cada baul tiene un nombre grabado en la tapa. Martin Blackwood. Elena Voss. Ricardo Hale. Isabel Crane. Y uno nuevo, recien etiquetado: " + G.nombreJugador + ". Esta vacio. Esperando."); incrementHorror(1); }
+    }},
+    sabanas: { alias: 'sabanas del atico', look: () => {
+      msg("Sabanas blancas cubren formas irregulares — muebles, cajas, objetos. Cuando las levantas, debajo hay sillas, mesitas, lamparas. Todo de buena calidad pero polvoriento.");
+      if (G.horror >= 10) { br(); msg("Levantas una sabana y debajo hay una silla con alguien sentado. Un maniqui. No, una persona. No, un maniqui. Parpadeas y ya no hay nada debajo de la sabana."); }
+    }}
+  }
+});
+
+defRoom('habitacion_carmen', {
+  alias: 'Habitacion de Carmen', floor: 'p2',
+  describe: () => {
+    if (G.horror < 10) msg("La habitacion de Carmen es un santuario del pasado. Fotografias enmarcadas cubren cada superficie: fotos en blanco y negro, sepias, a color. Todas muestran a Carmen en diferentes epocas, con diferentes huespedes, siempre sonriendo, siempre igual. Un tocador con un espejo redondo, una cama con dosel, y un cofre de madera labrada junto a la ventana.");
+    else msg("Las fotografias cuentan una historia imposible. Carmen aparece en todas, identica, sin envejecer, junto a huespedes que abarcan mas de un siglo. En la foto mas antigua, de 1826, esta junto a un hombre elegante de barba oscura. La inscripcion dice: 'Nicanor y yo. Nuestro primer huesped.' Carmen y Nicanor Molinare. Carmen ES la casa. Siempre lo fue.");
+  },
+  exits: { oeste: {to:'escalera_segundo_piso'} },
+  objects: {
+    fotos: { alias: 'fotografias', look: () => {
+      msg("Decenas de fotografias en marcos de plata. Carmen en cada una, siempre igual, con diferentes personas a su lado. Las fechas en los marcos abarcan desde 1826 hasta hoy.");
+      if (!G.easters.fotoCarmen) { G.easters.fotoCarmen = true; G.easterEggs++; br(); msg("Esto es imposible. Carmen tendria que tener mas de doscientos anos."); incrementHorror(2); }
+    }},
+    'cofre de carmen': { alias: 'cofre', look: () => {
+      msg("Un cofre de madera labrada con simbolos que no reconoces. Lo abres. Dentro hay:"); br();
+      msg("  - Un medallon con el retrato de un hombre joven (Nicanor Molinare, segun la inscripcion)"); msg("  - Un frasco vacio etiquetado 'Esencia Primigenia'"); msg("  - Un papel doblado con instrucciones para 'El Ritual de la Casa'"); msg("  - Una llave con la etiqueta 'Sala Oculta'"); br();
+      msg("Tomas la llave. Tus manos tiemblan.");
+      G.flags.llaveSalaOculta = true;
+      if (!G.easters.cofreCarmen) { G.easters.cofreCarmen = true; G.easterEggs++; }
+    }},
+    tocador: { alias: 'tocador', look: () => { msg("Un tocador elegante con un espejo ovalado. Sobre el hay un cepillo de plata, un frasco de perfume vacio, y un libro de contabilidad abierto. La ultima entrada dice: 'Huesped nuevo: " + G.nombreJugador + ". Duracion estimada: permanente.'"); }}
+  }
+});
+
+defRoom('cuarto_servicio', {
+  alias: 'Cuarto de Servicio', floor: 'p2',
+  describe: () => { msg("Un cuarto pequeno lleno de productos de limpieza, escobas, y trapos. En un estante hay un cuaderno de contabilidad y una linterna. El cuarto huele a lejia y a algo dulce debajo de la lejia."); },
+  exits: { este: {to:'escalera_segundo_piso'} },
+  objects: {
+    linterna: { alias: 'linterna', take: () => { msg("Tomas la linterna. Funciona, milagrosamente. Su luz es debil pero constante."); G.flags.tieneLinterna = true; G.inventory.push('linterna'); updateUI(); }, look: () => { msg("Una linterna de metal pesado, del tipo industrial. Tiene pilas. Funciona. Es probablemente el objeto mas util de toda la casa."); }},
+    'cuaderno de contabilidad': { alias: 'cuaderno de contabilidad', look: () => {
+      msg("Un cuaderno con columnas de numeros. No son cuentas normales. Son registros de... \u00bfpersonas? Cada entrada tiene un nombre, una fecha de llegada, y una columna final titulada 'Absorcion'. La mayoria estan marcadas como 'Completa'.");
+      if (!G.easters.cuaderno) { G.easters.cuaderno = true; G.easterEggs++; }
+    }}
+  }
+});
+
+// --- SOTANO ---
+defRoom('escalera_sotano', {
+  alias: 'Escalera al Sotano', floor: 'sot',
+  describe: () => {
+    if (G.horror < 10) msg("Una escalera de piedra humeda que desciende en espiral hacia la oscuridad. Las paredes son de piedra desnuda, cubiertas de humedad y algo verdoso. Cada escalon es mas estrecho que el anterior. El aire es frio y huele a tierra mojada, a bodega vieja, a secretos enterrados.");
+    else msg("La escalera desciende mas de lo que deberia. Bajas y bajas y el sotano no llega. Las paredes de piedra estan cubiertas de nombres grabados — cientos de nombres, cada uno con una fecha. Las piedras estan calientes al tacto, como la piel de algo vivo. El olor es dulce y antiguo, el olor de cosas que deberian estar muertas pero no lo estan.");
+  },
+  exits: { subir: {to:'lavadero'}, norte: {to:'bodega'} },
+  objects: {
+    'paredes del sotano': { alias: 'paredes', look: () => { msg("Piedra vieja, humeda, cubierta de musgo y algo que brilla levemente en la oscuridad. Si acercas la mano, la piedra esta tibia. Casi caliente. Como si hubiera algo vivo detras."); }},
+    goteo: { alias: 'goteo', look: () => { msg("Un goteo constante desde algun lugar del techo. El agua cae con un ritmo regular: gota, gota, gota. Pero a veces el ritmo cambia. A veces suena como un latido."); }}
+  }
+});
+
+defRoom('bodega', {
+  alias: 'Bodega', floor: 'sot',
+  describe: () => {
+    if (G.horror < 10) msg("Una bodega amplia con estantes de madera llenos de botellas de vino cubiertas de polvo y telaranas. El techo es bajo y las vigas son gruesas y oscuras. El suelo es de tierra apisonada. Al fondo, una puerta de hierro oxidado lleva al cuarto frio.");
+    else msg("La bodega huele a vino y a algo mas. Las botellas de vino tienen etiquetas con fechas que abarcan siglos. Algunas no contienen vino — contienen algo mas espeso, mas oscuro. Los estantes crujen bajo un peso que no se ve. Y la puerta de hierro del fondo esta ligeramente abierta, invitandote.");
+  },
+  exits: { sur: {to:'escalera_sotano'}, norte: {to:'cuarto_frio'} },
+  objects: {
+    'botellas de vino': { alias: 'botellas de vino', look: () => {
+      msg("Botellas antiguas, cubiertas de polvo. Las etiquetas muestran anadas que van desde 1826 hasta el presente. Algunas botellas estan vacias. Otras estan llenas de un liquido que no es vino — es demasiado oscuro, demasiado espeso.");
+      if (G.horror >= 10) { br(); msg("Una botella tiene una etiqueta manuscrita: 'Reserva de " + G.nombreJugador + ". Anadejoven. Aun madurando.' Esta llena de un liquido del color exacto de tu sangre."); incrementHorror(1); }
+    }}
+  }
+});
+
+defRoom('cuarto_frio', {
+  alias: 'Cuarto Frio', floor: 'sot',
+  describe: () => {
+    msg("Un cuarto con paredes de piedra que irradian un frio sobrenatural. Cajas de madera apiladas contra las paredes. Escarcha cubre las superficies. Tu aliento forma nubes blancas.");
+    if (G.horror >= 10) { br(); msg("Las cajas tienen nombres grabados en la madera. Nombres del libro de registro. Dentro de cada caja hay... no quieres saber. No quieres abrir las cajas. Pero hay una puerta al fondo, medio oculta detras de las cajas. Una puerta que no deberia existir."); }
+    if (G.flags.llaveSalaOculta) { br(); msg("La puerta al fondo esta cerrada, pero tienes la llave de la sala oculta."); }
+  },
+  exits: { sur: {to:'bodega'}, norte: {to:'sala_oculta', locked: true, lockedMsg: 'La puerta esta cerrada. Necesitas una llave.', script: ()=>{ if(G.flags.llaveSalaOculta) rooms.cuarto_frio.exits.norte.locked=false; }} },
+  objects: {
+    cajas: { alias: 'cajas', look: () => {
+      msg("Cajas de madera de diferentes tamanos, apiladas ordenadamente. Estan frias al tacto. Cada una tiene un nombre grabado en la tapa.");
+      if (G.horror >= 14) { br(); msg("Abres una con cuidado. Dentro hay ropa. Ropa de alguien que vivio aqui. Y debajo de la ropa, una fotografias, documentos, un reloj de bolsillo. Las pertenencias de alguien que nunca se fue. Las cajas son tumbasequipajesofrendas. Todo a la vez."); }
+    }},
+    escarcha: { alias: 'escarcha', look: () => { msg("Cristales de hielo cubren las superficies como una capa de azucar. Pero el hielo no se derrite con el calor de tu mano. Se expande. Se extiende. Como si la escarcha quisiera cubrirte a ti tambien."); }},
+    'puerta oculta': { alias: 'puerta oculta', look: () => {
+      msg("Una puerta de madera antigua, casi negra por la edad, medio escondida detras de las cajas. Tiene una cerradura de hierro forjado y grabados que parecen contar una historia: un hombre construyendo una casa. La casa creciendo. La casa consumiendo al hombre.");
+      if (G.flags.llaveSalaOculta) { br(); msg("La llave que encontraste en el cofre de Carmen encaja en la cerradura."); }
+    }}
+  }
+});
+
+defRoom('sala_oculta', {
+  alias: 'Sala Oculta', floor: 'sot',
+  describe: () => {
+    msg("Has llegado al corazon de la casa."); br();
+    msg("Una sala circular de piedra negra, iluminada por velas que arden con llamas azules. En el centro, una silla de madera tallada con simbolos. Frente a la silla, un atril con un libro abierto y una pluma antigua. En la pared, un espejo enorme que no refleja la sala sino un pasillo infinito de puertas."); br();
+    msg("El aire aqui es diferente. Mas denso. Mas real. Como si el resto de la casa fuera el sueno y esta sala fuera la unica realidad."); br();
+    if (G.easterEggs >= 15) { msg("El espejo brilla con una luz que no tienen los demas objetos. Has descubierto suficientes secretos para ver la VERDAD."); br(); }
+    msg("El libro espera. La pluma espera. La casa espera. \u00bfQue escribes?"); br();
+    msg("(Puedes FIRMAR LIBRO para escribir en el libro de la sala oculta.)");
+    if (G.acto < 4) { G.acto = 4; incrementHorror(5); }
+  },
+  exits: { sur: {to:'cuarto_frio'} },
+  objects: {
+    'espejo oculto': { alias: 'espejo', look: () => {
+      msg("Un espejo enorme de marco negro que no refleja la sala. Refleja un pasillo infinito de puertas. Cada puerta tiene un nombre: los nombres del libro de registro. La ultima puerta tiene tu nombre. Esta abierta.");
+      if (G.easterEggs >= 15) { br(); msg("Dentro de tu puerta ves algo extraordinario: la VERDAD. Puedes escribirla en el libro."); }
+    }},
+    'silla oculta': { alias: 'silla', look: () => { msg("Una silla de madera oscura tallada con simbolos. El asiento esta caliente, como si alguien acabara de levantarse. O como si la silla misma estuviera viva."); }},
+    'libro abierto': { alias: 'libro', look: () => {
+      msg("Un libro enorme abierto por la ultima pagina. Paginas y paginas de nombres, cada uno seguido de una palabra: LIBERTAD, ACEPTACION, OLVIDO, SACRIFICIO. Y uno, solo uno, dice: VERDAD."); br();
+      msg("La ultima linea esta vacia. La pluma espera junto al tintero. Es tu turno de escribir.");
+      if (G.flags.salvoSofia) { br(); msg("Recuerdas las palabras de Sofia: 'Si escribes mi nombre... yo me voy y tu te quedas.'"); }
+    }}
+  }
+});
+
+
+// ==================== FIVE ENDINGS ====================
+
+function finalEscape() {
+  G.gameOver = true;
+  applyHorrorEffects(0); // Clear effects
+  br();
+  msg('<div style="color:#00aa00;font-size:18px;text-align:center;margin:20px 0;">FINAL 1: LIBERTAD</div>');
+  br();
+  msg("La palabra se hunde en el papel como una raiz que busca agua. La tinta brilla con un color verde imposible y toda la casa tiembla."); br();
+  msg("Las paredes crujen. Las velas se apagan. El espejo se agrieta de arriba abajo. Y entonces, luz. Luz real, blanca, del exterior, entrando por grietas que se abren en la piedra negra."); br();
+  msg("Subes corriendo. Cada escalon te acerca mas a la superficie. Las habitaciones se desmoronan a tu paso — los manuscritos de Martin se convierten en polvo, las marcas de Ramon se borran, los dibujos de Sofia se desvanecen, la maleta de Lucia se cierra para siempre."); br();
+  msg("Sales al jardin. El sol es real. El camino es recto. Y al final del camino, un pueblo que existe, con gente que existe, bajo un cielo que existe."); br();
+  msg("No miras atras. Pero oyes, muy debilmente, una voz de nina: 'Adios, " + G.nombreJugador + ". Ojala alguien hubiera escrito mi nombre.'"); br();
+  msg("Eres libre. Pero la libertad tiene un sabor amargo cuando sabes lo que dejaste atras."); br();
+  msg('<div style="color:#00aa00;text-align:center;margin:20px 0;">FIN</div>');
+  showEndStats();
+}
+
+function finalAceptacion() {
+  G.gameOver = true;
+  br();
+  msg('<div style="color:#aa8800;font-size:18px;text-align:center;margin:20px 0;">FINAL 2: ACEPTACION</div>');
+  br();
+  msg("Escribes tu propio nombre. La tinta se extiende como raices. Algo dentro de ti se calma, se rinde, se acomoda."); br();
+  msg("La casa suspira. Un suspiro de satisfaccion profunda y antigua. Las velas arden mas brillantes. El espejo muestra tu puerta, y dentro de ella, una habitacion acogedora con fuego en la chimenea."); br();
+  msg("Subes las escaleras. La casa ya no da miedo. Es tu hogar. Siempre fue tu hogar. Las paredes son calidas, las puertas estan abiertas, y Carmen te espera con un plato de estofado humeante."); br();
+  msg("'Bienvenido a casa, querido,' dice, y su sonrisa es la cosa mas genuina del mundo."); br();
+  msg("Te sientas. Comes. El estofado es delicioso. Siempre lo fue."); br();
+  msg("Martin escribe tu nombre en el manuscrito. Ramon anade una marca en la pared. Lucia asiente. Sofia te dibuja con una sonrisa."); br();
+  msg("Eres parte de Nicanor Molinare. Para siempre. Y para siempre no es tanto tiempo cuando tienes buena compania."); br();
+  msg('<div style="color:#aa8800;text-align:center;margin:20px 0;">FIN</div>');
+  showEndStats();
+}
+
+function finalOlvido() {
+  G.gameOver = true;
+  br();
+  msg('<div style="color:#888888;font-size:18px;text-align:center;margin:20px 0;">FINAL 3: OLVIDO</div>');
+  br();
+  msg("No escribes nada. Dejas la pluma. Te levantas de la silla. Miras el libro vacio."); br();
+  msg("La casa se queda en silencio. Un silencio total, absoluto, como si el universo entero contuviera la respiracion."); br();
+  msg("Y entonces empiezas a olvidar. Tu nombre se disuelve. Tu cara se difumina. Tus memorias se evaporan una a una — tu infancia, tu casa, tu vida fuera de estas paredes."); br();
+  msg("Caminas por los pasillos de la casa como un fantasma. Los otros huespedes no te ven. Carmen no te sirve estofado. Sofia no te dibuja. Martin no escribe tu capitulo."); br();
+  msg("Eres el eco de un eco. Una sombra de una sombra. El huesped que nunca estuvo."); br();
+  msg("Vagas por Nicanor Molinare para siempre, buscando algo que no recuerdas, en una casa que no reconoces, con un nombre que ya no es tuyo."); br();
+  msg('<div style="color:#888888;text-align:center;margin:20px 0;">FIN</div>');
+  showEndStats();
+}
+
+function finalSacrificio() {
+  G.gameOver = true;
+  br();
+  msg('<div style="color:#cc44cc;font-size:18px;text-align:center;margin:20px 0;">FINAL 4: SACRIFICIO</div>');
+  br();
+  msg("Escribes su nombre. 'SOFIA'. La tinta brilla con una luz imposible, blanca y pura, que llena la sala oculta."); br();
+  msg("Sofia aparece frente a ti. Ya no es una nina con ojos viejos. Es una nina de verdad, con ojos que brillan de lagrimas y una sonrisa que por primera vez es completamente humana."); br();
+  msg("'Gracias,' susurra. 'Trescientos anos. Trescientos anos esperando a alguien que escribiera mi nombre.'"); br();
+  msg("La luz la envuelve y la eleva. Las paredes de la sala se agrietan y por las grietas entra aire del exterior — aire real, aire libre. Sofia flota hacia las grietas, hacia la luz, hacia la libertad que merecia hace siglos."); br();
+  msg("Tu te quedas. La silla te acoge. El libro escribe tu nombre solo. Las velas arden a tu alrededor con llamas que ya no son azules sino anaranjadas, calidas, domesticas."); br();
+  msg("Carmen te mira desde la puerta. 'Eres noble,' dice. 'El mas noble de todos. Cuidaremos bien de ti.'"); br();
+  msg("Cierras los ojos. Cuando los abres, eres parte de la casa. Pero no una prision — un hogar. Tu sacrificio le dio a la casa algo que nunca tuvo: gratitud."); br();
+  msg('<div style="color:#cc44cc;text-align:center;margin:20px 0;">FIN</div>');
+  showEndStats();
+}
+
+function finalVerdad() {
+  G.gameOver = true;
+  br();
+  msg('<div style="color:#ffdd00;font-size:18px;text-align:center;margin:20px 0;text-shadow:0 0 20px #ffdd00;">FINAL 5: LA VERDAD</div>');
+  br();
+  msg("Escribes VERDAD. La tinta explota en todos los colores del espectro. El libro se ilumina como un sol pequeno. El espejo se rompe en mil pedazos que flotan en el aire como estrellas."); br();
+  msg("Y entonces VES. Ves la verdad completa."); br();
+  msg("Nicanor Molinare fue un hombre. Un hombre solitario que construyo una casa para no estar solo. Pero la soledad se convirtio en hambre, y el hambre se convirtio en la casa, y la casa se convirtio en Nicanor."); br();
+  msg("Carmen es su amor, preservada en madera y piedra. Martin es su voz, escribiendo eternamente. Lucia es su memoria, desvaneciendose. Ramon es su obsesion con el tiempo. Sofia es su infancia, atrapada para siempre."); br();
+  msg("Y tu... tu eres su esperanza. La esperanza de que alguien entendiera. De que alguien viera la verdad detras del horror, el hombre detras del monstruo, el amor detras del hambre."); br();
+  msg("La casa te suelta. No porque seas libre — porque eres mas que un huesped. Eres un testigo. El unico que vio la verdad completa."); br();
+  msg("Sales al jardin. El sol brilla. Pero llevas la casa contigo, en tu memoria, como una herida que no duele pero que nunca se cierra."); br();
+  msg("Nicanor Molinare sigue ahi, en el valle, esperando al proximo viajero. Pero ahora, en alguna pared, en alguna piedra, grabado con luz: 'Alguien entendio.'"); br();
+  msg("Y eso, para un alma solitaria que lleva doscientos anos gritando en silencio, es suficiente."); br();
+  msg('<div style="color:#ffdd00;text-align:center;margin:20px 0;text-shadow:0 0 10px #ffdd00;">HAS DESCUBIERTO EL FINAL VERDADERO</div>');
+  msg('<div style="color:#ffdd00;text-align:center;">Secretos descubiertos: ' + G.easterEggs + '/25</div>');
+  showEndStats();
+}
+
+function showEndStats() {
+  br();
+  msg('<div style="border:1px solid #555;padding:15px;margin:15px 0;background:#111;color:#aaa;text-align:center;">');
+  msg('<div style="font-size:16px;margin-bottom:10px;">NICANOR MOLINARE - ESTADISTICAS</div>');
+  msg('Turnos: ' + G.turnos + '<br>');
+  msg('Horror alcanzado: ' + G.horror + '/20<br>');
+  msg('Secretos: ' + G.easterEggs + '/25<br>');
+  msg('Acto final: ' + G.acto + '<br>');
+  msg('<div style="margin-top:10px;font-size:12px;color:#666;">Gracias por jugar. La casa te recuerda.</div>');
+  msg('</div>');
+  document.getElementById('cmd-input').disabled = true;
+}
+
+// ==================== GAME INITIALIZATION ====================
+
+function initGame() {
+  const introScreen = document.getElementById('intro-screen');
+  const gameContainer = document.getElementById('game-container');
+  
+  // Show intro, hide game
+  if (introScreen) introScreen.style.display = 'flex';
+  if (gameContainer) gameContainer.style.display = 'none';
+  
+  document.getElementById('intro-name').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('intro-start').click();
+  });
+  document.getElementById('intro-start').addEventListener('click', () => {
+    const nombre = document.getElementById('intro-name').value.trim();
+    if (!nombre) {
+      const nameInput = document.getElementById('intro-name');
+      const errDiv = document.getElementById('intro-name-error');
+      nameInput.style.borderColor = '#cc4444';
+      nameInput.style.animation = 'shake 0.3s ease';
+      setTimeout(() => nameInput.style.animation = '', 300);
+      if (errDiv) errDiv.style.opacity = '1';
+      nameInput.focus();
+      return;
+    }
+    G.nombreJugador = nombre;
+    const dateInput = document.getElementById('intro-date');
+    G.fechaNacimiento = dateInput ? dateInput.value : '';
+    G.fechaEntrada = new Date().toLocaleDateString('es-ES');
+    
+    introScreen.classList.add('fade-out');
+    setTimeout(() => { introScreen.style.display = 'none'; }, 1500);
+    gameContainer.style.display = 'flex';
+    
+    // Initial message
+    msg('<div style="color:#cc8833;font-size:16px;text-align:center;margin:10px 0;">NICANOR MOLINARE</div>');
+    msg('<div style="color:#886633;text-align:center;font-style:italic;">La Casa de Huespedes</div>');
+    br();
+    msg("Llegas tras un largo viaje. El cansancio pesa en tus huesos y el hambre ruge en tu estomago. El cartel junto al camino decia 'Nicanor Molinare - Casa de Huespedes' y la promesa de una cama caliente y comida casera te trajo hasta aqui."); br();
+    msg("La casa se alza ante ti: una construccion elegante de piedra y madera, con ventanas iluminadas que prometen calor en la fria tarde de otono. Un jardin cuidado rodea la fachada. La puerta principal esta abierta."); br();
+    msg("Una mujer mayor de sonrisa calida aparece en la puerta."); br();
+    msg("'\u00a1Bienvenido, " + G.nombreJugador + "! Te estabamos esperando. Soy Carmen. Pasa, pasa, que el estofado esta listo y tu habitacion esta preparada.'"); br();
+    msg("Te registras en el libro de visitas. Carmen te muestra la casa con orgullo maternal. Todo parece perfecto. Demasiado perfecto."); br();
+    msg('<div style="color:#666;font-style:italic;">Escribe comandos para interactuar: ir norte/sur/este/oeste, examinar [objeto], hablar con [persona], tomar [objeto], usar [objeto], inventario, ayuda</div>');
+    
+    moveToRoom('recepcion');
+    document.getElementById('cmd-input').focus();
+  });
+  
+  // (event listener movido al parser principal)
+}
+
+// Start the game when DOM is ready
+document.addEventListener('DOMContentLoaded', initGame);
+
+</script>
+</body>
+</html>

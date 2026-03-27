@@ -1,0 +1,6 @@
+*.bak*
+*.pyc
+__pycache__/
+node_modules/
+read_file.py
+read_tail.js
