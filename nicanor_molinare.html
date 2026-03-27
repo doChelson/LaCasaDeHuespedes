@@ -92,11 +92,7 @@ body {
     </div>
     <div id="map-floor-tabs"></div>
   </div>
-  <!-- En esta habitación -->
-  <div id="room-objects-panel" class="panel">
-    <div class="panel-header">EN ESTA HABITACIÓN</div>
-    <div id="room-objects-list"><span class="empty-text">Nada notable.</span></div>
-  </div>
+
   <!-- Inventario -->
   <div id="inventory-panel" class="panel">
     <div class="panel-header">INVENTARIO</div>
@@ -119,10 +115,17 @@ body {
   <div id="output-wrapper">
     <div id="output"></div>
   </div>
-  <!-- Navigation & Action Buttons -->
+  <!-- Main Action Bar -->
   <div id="button-area">
-    <div id="nav-buttons"></div>
-    <div id="action-buttons"></div>
+    <div id="main-action-bar">
+      <button class="main-btn" id="btn-mover" onclick="toggleDropdown('move')">Mover</button>
+      <button class="main-btn" id="btn-inspeccionar" onclick="toggleDropdown('inspect')">Inspeccionar</button>
+      <button class="main-btn" id="btn-acciones" onclick="toggleDropdown('actions')">Acciones</button>
+      <button class="main-btn" id="btn-inventario" onclick="doAction('inventario')">Inventario</button>
+    </div>
+    <div id="dropdown-move" class="dropdown-panel"></div>
+    <div id="dropdown-inspect" class="dropdown-panel"></div>
+    <div id="dropdown-actions" class="dropdown-panel"></div>
   </div>
   <!-- Hidden text input for special cases -->
   <div id="input-area" style="display:none;">
@@ -433,11 +436,11 @@ body {
 /* ===== BINDING OF ISAAC MAP ===== */
 #map-grid-container { display:flex; justify-content:center; padding:5px 0; }
 #map-grid { display:grid; gap:2px; }
-.map-cell { width:28px; height:28px; border-radius:3px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:bold; transition:all 0.3s; }
+.map-cell { width:44px; height:34px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:bold; transition:all 0.3s; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding:0 2px; }
 .map-cell.empty { background:transparent; }
-.map-cell.room { background:#1a1212; border:1px solid #331a1a; color:#553333; font-size:8px; cursor:default; }
-.map-cell.room.visited { background:#201515; border:1px solid #442222; color:#775544; }
-.map-cell.room.current { background:#442222; border:2px solid #cc4444; color:#ffcc88; box-shadow:0 0 8px rgba(204,68,68,0.4); animation:currentPulse 2s ease infinite; }
+.map-cell.room { background:#1a1212; border:1px solid #331a1a; color:#665544; font-size:9px; cursor:default; }
+.map-cell.room.visited { background:#201515; border:1px solid #442222; color:#aa8866; }
+.map-cell.room.current { background:#552222; border:2px solid #cc4444; color:#ffeedd; font-size:10px; box-shadow:0 0 12px rgba(204,68,68,0.5); animation:currentPulse 2s ease infinite; }
 .map-cell.room.locked { background:#0f0a0a; border:1px dashed #221111; color:#221111; }
 @keyframes currentPulse { 0%,100%{box-shadow:0 0 8px rgba(204,68,68,0.4);} 50%{box-shadow:0 0 15px rgba(204,68,68,0.7);} }
 #map-floor-tabs { display:flex; gap:3px; justify-content:center; margin-top:5px; flex-wrap:wrap; }
@@ -446,15 +449,15 @@ body {
 .floor-tab:hover { border-color:#664433; }
 
 /* ===== BUTTON NAVIGATION ===== */
-#button-area { border-top:1px solid #221111; background:#0c0808; padding:10px 15px; }
-#nav-buttons { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; justify-content:center; }
-#action-buttons { display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
+#button-area { border-top:2px solid #331111; background:linear-gradient(180deg, #0e0808, #0a0606); padding:12px 20px; }
+#nav-buttons { display:none; flex-wrap:wrap; gap:8px; margin-bottom:10px; justify-content:center; padding:8px 0; }
+#action-buttons { display:none; flex-wrap:wrap; gap:6px; justify-content:center; padding:6px 0; }
 .nav-btn {
-  background: linear-gradient(180deg, #1a1010, #120a0a);
-  border:1px solid #442222; color:#cc8866; padding:8px 14px;
-  font-family:Georgia,serif; font-size:13px; font-weight:bold;
-  cursor:pointer; border-radius:5px; transition:all 0.2s;
-  min-width:120px; text-align:center;
+  background: linear-gradient(180deg, #251515, #180e0e);
+  border:1px solid #553322; color:#ddaa77; padding:10px 18px;
+  font-family:Georgia,serif; font-size:14px; font-weight:bold;
+  cursor:pointer; border-radius:6px; transition:all 0.2s;
+  text-align:center;
 }
 .nav-btn:hover { background:linear-gradient(180deg, #2a1515, #1a0f0f); border-color:#cc4444; color:#ffaa77; transform:translateY(-1px); box-shadow:0 2px 8px rgba(204,68,68,0.2); }
 .nav-btn:active { transform:translateY(0); }
@@ -470,7 +473,7 @@ body {
 .act-btn.special-btn:hover { border-color:#884422; color:#ff8866; }
 
 /* ===== IMPROVED TYPOGRAPHY ===== */
-#output { max-width:750px; margin:0 auto; font-size:15px; line-height:1.8; }
+#output { max-width:780px; margin:0 auto; font-size:15px; line-height:1.8; }
 .msg { margin-bottom:10px; }
 .msg-narrator { color:#ddd8cc; font-size:15px; }
 .msg-dialog { color:#ddbb77; font-style:italic; font-size:15px; }
@@ -482,6 +485,79 @@ body {
 
 /* ===== TEXT INPUT VISIBLE WHEN NEEDED ===== */
 #input-area.visible { display:flex !important; }
+
+/* ===== MESSAGE BOXES ===== */
+.turn-box {
+  background: linear-gradient(180deg, rgba(20,12,12,0.6), rgba(15,8,8,0.4));
+  border: 1px solid #1a1111;
+  border-left: 3px solid #331111;
+  border-radius: 5px;
+  padding: 14px 18px;
+  margin: 10px 0;
+  transition: border-color 0.3s;
+}
+.turn-box:last-child { border-left-color: #553322; }
+.turn-box .cmd-echo { margin-bottom: 8px; font-size: 12px; }
+.turn-box.horror-box { border-left-color: #cc4444; background: rgba(30,8,8,0.6); }
+
+/* ===== MAIN ACTION BAR ===== */
+#main-action-bar {
+  display:flex; gap:6px; justify-content:center; align-items:center; flex-wrap:wrap;
+}
+.main-btn {
+  background: linear-gradient(180deg, #2a1515, #1a0c0c);
+  border: 2px solid #553322;
+  color: #eebb88;
+  padding: 12px 22px;
+  font-family: Georgia, serif;
+  font-size: 15px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.25s;
+  text-transform: uppercase;
+}
+.main-btn:hover {
+  background: linear-gradient(180deg, #3a1f1f, #2a1515);
+  border-color: #cc4444;
+  color: #ffcc99;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(204,68,68,0.3);
+}
+.main-btn:active { transform: translateY(0); }
+.main-btn.active {
+  background: linear-gradient(180deg, #441818, #331010);
+  border-color: #cc4444;
+  box-shadow: 0 0 10px rgba(204,68,68,0.3);
+}
+
+/* ===== DROPDOWN PANELS ===== */
+.dropdown-panel {
+  display: none;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  padding: 10px 0;
+  animation: fadeIn 0.2s ease;
+}
+.dropdown-panel.open { display: flex; }
+
+/* ===== INSPECT ITEMS IN DROPDOWN ===== */
+.inspect-item {
+  background: #130a0a;
+  border: 1px solid #332222;
+  color: #cc8866;
+  padding: 7px 14px;
+  font-family: Georgia, serif;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+.inspect-item:hover { background:#1a1010; border-color:#885544; color:#ffaa88; }
+.inspect-item.npc { border-color:#554422; color:#ccaa44; }
+.inspect-item.npc:hover { border-color:#aa8844; color:#ffcc66; }
 </style>
 
 <!-- segundo intro-screen eliminado -->
@@ -549,9 +625,14 @@ const outputWrapper = document.getElementById('output-wrapper');
 
 function msg(text, cls = 'narrator') {
   const div = document.createElement('div');
-  div.className = `msg msg-${cls}`;
+  div.className = 'msg msg-' + cls;
   div.innerHTML = text;
-  output.appendChild(div);
+  // Append to current turn box if active, otherwise to main output
+  if (G._turnBox) {
+    G._turnBox.appendChild(div);
+  } else {
+    output.appendChild(div);
+  }
   scrollToBottom();
 }
 
@@ -829,22 +910,7 @@ function updateUI() {
     else { turnosDiv.style.display = 'none'; }
   }
 
-  // Room Objects Panel
-  const roomObjDiv = document.getElementById('room-objects-list');
-  if (roomObjDiv) {
-    const objEntries = room.objects ? Object.entries(room.objects) : [];
-    if (objEntries.length === 0) {
-      roomObjDiv.innerHTML = '<span class="empty-text">Nada notable.</span>';
-    } else {
-      roomObjDiv.innerHTML = objEntries.map(([key, obj]) => {
-        const name = obj.alias || key;
-        const isNPC = !!obj.speak;
-        const icon = isNPC ? '\u{1F464} ' : '\u{1F50D} ';
-        const cls = isNPC ? 'room-obj-npc' : 'room-obj-item';
-        return '<div class="' + cls + '" onclick="doAction(\'examinar ' + name.toLowerCase().replace(/'/g, "\\\'") + '\')">' + icon + name + '</div>';
-      }).join('');
-    }
-  }
+  // Room objects moved to Inspect dropdown
 
   // Inventory
   const invDiv = document.getElementById('inventory-list');
@@ -856,81 +922,74 @@ function updateUI() {
     ).join('');
   }
 
-  // === NAVIGATION BUTTONS (replaces text input) ===
-  const navDiv = document.getElementById('nav-buttons');
-  if (navDiv) {
-    navDiv.innerHTML = '';
+  // === DROPDOWN: MOVER ===
+  const movePanel = document.getElementById('dropdown-move');
+  if (movePanel) {
+    movePanel.innerHTML = '';
     for (const [dir, exit] of Object.entries(room.exits)) {
       const btn = document.createElement('button');
       btn.className = 'nav-btn';
-      
-      // Get destination name
       let destName = '???';
-      if (typeof exit === 'object' && exit.to && rooms[exit.to]) {
-        destName = rooms[exit.to].alias;
-      } else if (typeof exit === 'string' && rooms[exit]) {
-        destName = rooms[exit].alias;
-      }
-      
-      // Check if locked
+      if (typeof exit === 'object' && exit.to && rooms[exit.to]) destName = rooms[exit.to].alias;
+      else if (typeof exit === 'string' && rooms[exit]) destName = rooms[exit].alias;
       const isLocked = typeof exit === 'object' && exit.locked;
-      if (isLocked) {
-        btn.textContent = '\u{1F512} ' + destName;
-        btn.style.opacity = '0.5';
-        btn.style.borderStyle = 'dashed';
-      } else {
-        btn.textContent = destName;
-      }
-      
+      if (isLocked) { btn.textContent = '\u{1F512} ' + destName; btn.style.opacity = '0.5'; btn.style.borderStyle = 'dashed'; }
+      else { btn.textContent = destName; }
       btn.onclick = () => doAction('ir ' + dir);
-      navDiv.appendChild(btn);
+      movePanel.appendChild(btn);
     }
   }
 
-  // === ACTION BUTTONS ===
-  const actDiv = document.getElementById('action-buttons');
-  if (actDiv) {
-    actDiv.innerHTML = '';
+  // === DROPDOWN: INSPECCIONAR (room objects moved here) ===
+  const inspectPanel = document.getElementById('dropdown-inspect');
+  if (inspectPanel) {
+    inspectPanel.innerHTML = '';
+    const objEntries = room.objects ? Object.entries(room.objects) : [];
+    if (objEntries.length === 0) {
+      inspectPanel.innerHTML = '<span class="empty-text" style="padding:5px;">Nada notable que inspeccionar.</span>';
+    } else {
+      objEntries.forEach(([key, obj]) => {
+        const name = obj.alias || key;
+        const isNPC = !!obj.speak;
+        const btn = document.createElement('button');
+        btn.className = 'inspect-item' + (isNPC ? ' npc' : '');
+        btn.textContent = (isNPC ? '\u{1F464} ' : '\u{1F50D} ') + name;
+        btn.onclick = () => doAction('examinar ' + name.toLowerCase());
+        inspectPanel.appendChild(btn);
+      });
+    }
+  }
+
+  // === DROPDOWN: ACCIONES ===
+  const actPanel = document.getElementById('dropdown-actions');
+  if (actPanel) {
+    actPanel.innerHTML = '';
     const actions = [];
-    
-    // NPC talk buttons
+    // NPC talk
     if (room.objects) {
       for (const [key, obj] of Object.entries(room.objects)) {
-        if (obj.speak) {
-          actions.push({ label: '\u{1F4AC} Hablar con ' + (obj.alias || key), cmd: 'hablar con ' + (obj.alias || key).toLowerCase(), cls: 'npc-btn' });
-        }
+        if (obj.speak) actions.push({ label: '\u{1F4AC} Hablar con ' + (obj.alias || key), cmd: 'hablar con ' + (obj.alias || key).toLowerCase(), cls: 'npc' });
+        if (obj.take) actions.push({ label: '\u{270B} Tomar ' + (obj.alias || key), cmd: 'tomar ' + (obj.alias || key).toLowerCase(), cls: '' });
       }
     }
-    
-    // Take buttons
-    if (room.objects) {
-      for (const [key, obj] of Object.entries(room.objects)) {
-        if (obj.take) {
-          actions.push({ label: '\u{270B} Tomar ' + (obj.alias || key), cmd: 'tomar ' + (obj.alias || key).toLowerCase(), cls: '' });
-        }
-      }
-    }
-    
     // Room-specific
-    if (G.currentRoom === 'cocina') actions.push({ label: '\u{1F372} Comer estofado', cmd: 'comer estofado', cls: 'special-btn' });
-    if (G.currentRoom === 'tu_habitacion') actions.push({ label: '\u{1F4A4} Dormir', cmd: 'dormir', cls: 'special-btn' });
-    if (G.currentRoom === 'bano_visitas' || G.currentRoom === 'bano_primer_piso') actions.push({ label: '\u{1FA9E} Examinar espejo', cmd: 'examinar espejo', cls: 'special-btn' });
-    if (G.currentRoom === 'sala_oculta') actions.push({ label: '\u{1F4D6} Firmar libro', cmd: 'firmar libro', cls: 'special-btn' });
-    if (G.currentRoom === 'lavadero' && !G.flags.abrioSotano) actions.push({ label: '\u{1F510} Abrir trampilla', cmd: 'abrir sotano', cls: 'special-btn' });
-    
-    // Universal actions
+    if (G.currentRoom === 'cocina') actions.push({ label: '\u{1F372} Comer estofado', cmd: 'comer estofado', cls: '' });
+    if (G.currentRoom === 'tu_habitacion') actions.push({ label: '\u{1F4A4} Dormir', cmd: 'dormir', cls: '' });
+    if (G.currentRoom === 'bano_visitas' || G.currentRoom === 'bano_primer_piso') actions.push({ label: '\u{1FA9E} Examinar espejo', cmd: 'examinar espejo', cls: '' });
+    if (G.currentRoom === 'sala_oculta') actions.push({ label: '\u{1F4D6} Firmar libro', cmd: 'firmar libro', cls: '' });
+    if (G.currentRoom === 'lavadero' && !G.flags.abrioSotano) actions.push({ label: '\u{1F510} Abrir trampilla', cmd: 'abrir sotano', cls: '' });
+    // Universal
     actions.push({ label: 'Mirar', cmd: 'mirar', cls: '' });
     actions.push({ label: 'Oler', cmd: 'oler', cls: '' });
     actions.push({ label: 'Escuchar', cmd: 'escuchar', cls: '' });
-    actions.push({ label: 'Inventario', cmd: 'inventario', cls: '' });
     actions.push({ label: 'Ayuda', cmd: 'ayuda', cls: '' });
     
     actions.forEach(a => {
       const btn = document.createElement('button');
-      btn.className = 'act-btn ' + (a.cls || '');
+      btn.className = 'inspect-item' + (a.cls === 'npc' ? ' npc' : '');
       btn.textContent = a.label;
       btn.onclick = () => doAction(a.cmd);
-      actDiv.appendChild(btn);
+      actPanel.appendChild(btn);
     });
   }
 
@@ -938,23 +997,57 @@ function updateUI() {
   updateMap();
 }
 
-// Central action handler (replaces typing)
+// Dropdown toggle
+let currentDropdown = null;
+function toggleDropdown(name) {
+  const panels = ['move','inspect','actions'];
+  panels.forEach(p => {
+    const el = document.getElementById('dropdown-' + p);
+    const btn = document.getElementById('btn-' + (p === 'move' ? 'mover' : p === 'inspect' ? 'inspeccionar' : 'acciones'));
+    if (p === name && currentDropdown !== name) {
+      el.classList.add('open');
+      if (btn) btn.classList.add('active');
+    } else {
+      el.classList.remove('open');
+      if (btn) btn.classList.remove('active');
+    }
+  });
+  currentDropdown = currentDropdown === name ? null : name;
+}
+
+// Close dropdowns
+function closeDropdowns() {
+  currentDropdown = null;
+  ['move','inspect','actions'].forEach(p => {
+    const el = document.getElementById('dropdown-' + p);
+    if (el) el.classList.remove('open');
+  });
+  document.querySelectorAll('.main-btn').forEach(b => b.classList.remove('active'));
+}
+
+// Central action handler
 function doAction(cmd) {
   if (G.gameOver) return;
+  closeDropdowns();
+  
   const out = document.getElementById('output');
+  
+  // Create turn box
+  G._turnBox = document.createElement('div');
+  G._turnBox.className = 'turn-box' + (G.horror >= 14 ? ' horror-box' : '');
+  
+  // Command echo inside box
   const cmdDiv = document.createElement('div');
   cmdDiv.className = 'cmd-echo';
   cmdDiv.textContent = '> ' + cmd;
-  out.appendChild(cmdDiv);
+  G._turnBox.appendChild(cmdDiv);
+  
+  out.appendChild(G._turnBox);
   
   processCommand(cmd);
   runTurnScripts();
   
-  // Turn separator
-  const sep = document.createElement('div');
-  sep.style.cssText = 'border-top:1px solid #1a1111;margin:12px 0;opacity:0.3;';
-  out.appendChild(sep);
-  
+  G._turnBox = null;
   out.scrollTop = out.scrollHeight;
   updateUI();
 }
@@ -1025,8 +1118,8 @@ function updateMap(targetFloor) {
   
   const grid = document.getElementById('map-grid');
   grid.innerHTML = '';
-  grid.style.gridTemplateColumns = 'repeat(' + layout.cols + ', 28px)';
-  grid.style.gridTemplateRows = 'repeat(' + layout.rows + ', 28px)';
+  grid.style.gridTemplateColumns = 'repeat(' + layout.cols + ', 44px)';
+  grid.style.gridTemplateRows = 'repeat(' + layout.rows + ', 34px)';
   
   for (let r = 0; r < layout.rows; r++) {
     for (let cl = 0; cl < layout.cols; cl++) {
