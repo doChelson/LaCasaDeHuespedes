@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nicanor Molinare - La Casa de Huéspedes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="intro-screen">
+    <div class="intro-title">NICANOR MOLINARE</div>
+    <div class="intro-subtitle">La Casa de Huéspedes</div>
+    <div class="intro-tagline">
+      "Todos los que llegan se quedan.<br>
+      Todos los que se quedan olvidan.<br>
+      Todos los que olvidan... son felices."
+    </div>
+    <div style="margin-top:30px; display:flex; flex-direction:column; align-items:center;">
+      <label style="color:#888;font-size:13px;margin-bottom:8px;">Tu nombre, viajero:</label>
+      <input type="text" id="intro-name" placeholder="Escribe tu nombre..." autofocus>
+      <div id="intro-name-error">La casa necesita un nombre. Todos los huéspedes tienen nombre.</div>
+    </div>
+    <div style="margin-top:15px; display:flex; flex-direction:column; align-items:center;">
+      <label style="color:#888;font-size:13px;margin-bottom:8px;">Fecha de nacimiento:</label>
+      <input type="date" id="intro-date">
+    </div>
+    <button id="intro-start">ENTRAR</button>
+    <div class="firma-intro">doChelson</div>
+  </div>
+
+  <button id="mobile-toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">&#9776; Menu</button>
+  
+  <div id="game-container">
+    <div id="sidebar">
+      <div id="location-panel" class="panel">
+        <div class="panel-header">UBICACIÓN</div>
+        <div id="location-name">???</div>
+        <div id="floor-label"></div>
+      </div>
+      <div id="map-panel" class="panel">
+        <div class="panel-header">MAPA</div>
+        <div id="map-grid-container"><div id="map-grid"></div></div>
+        <div id="map-floor-tabs"></div>
+      </div>
+      <div id="inventory-panel" class="panel">
+        <div class="panel-header">INVENTARIO</div>
+        <div id="inventory-list"><span class="empty-text">No llevas nada.</span></div>
+      </div>
+      <div id="status-panel" class="panel">
+        <div class="panel-header">ESTADO</div>
+        <div id="status-info">
+          <div>Acto: <span id="status-acto">1</span></div>
+          <div id="status-mental">Estado mental: <span id="status-horror">Tranquilo</span></div>
+          <div>Secretos: <span id="status-secrets">0</span>/25</div>
+          <div id="status-turnos" style="display:none;">Turnos: <span id="status-turnos-num">0</span></div>
+        </div>
+      </div>
+      <div class="firma-sidebar">doChelson</div>
+    </div>
+
+    <div id="main-area">
+      <div id="output-wrapper"><div id="output"></div></div>
+      <div id="button-area">
+        <div id="main-action-bar">
+          <button class="main-btn" id="btn-mover" onclick="toggleDropdown('move')">Mover</button>
+          <button class="main-btn" id="btn-inspeccionar" onclick="toggleDropdown('inspect')">Inspeccionar</button>
+          <button class="main-btn" id="btn-acciones" onclick="toggleDropdown('actions')">Acciones</button>
+          <button class="main-btn" id="btn-inventario" onclick="doAction('inventario')">Inventario</button>
+        </div>
+        <div id="dropdown-move" class="dropdown-panel"></div>
+        <div id="dropdown-inspect" class="dropdown-panel"></div>
+        <div id="dropdown-actions" class="dropdown-panel"></div>
+      </div>
+      <div id="input-area" style="display:none;">
+        <span id="prompt-char">▸</span>
+        <input type="text" id="cmd-input" placeholder="Escribe aquí..." autocomplete="off" spellcheck="false">
+      </div>
+    </div>
+  </div>
+
+  <div id="horror-overlay"></div>
+  <div id="vignette"></div>
+
+  <script src="game.js"></script>
+</body>
+</html>
